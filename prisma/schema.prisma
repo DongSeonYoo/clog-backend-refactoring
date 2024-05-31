@@ -187,7 +187,7 @@ model postImg {
 model post {
   idx             Int               @id @default(autoincrement())
   accountIdx      Int               @map("account_idx")
-  type            String            @db.VarChar
+  type            PostType
   title           String            @db.VarChar
   content         String
   createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
