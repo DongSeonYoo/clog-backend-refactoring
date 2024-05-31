@@ -1,0 +1,13 @@
+video
+
+node_modules/
+
+.env
+
+*.vuerd.json
+
+dist/
+
+*.sql
+
+.idea/
