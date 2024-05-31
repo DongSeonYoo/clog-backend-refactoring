@@ -1,17 +1,38 @@
 import { Router } from 'express';
 import { wrapper } from '../../util/wrapper.util';
-import Container from 'typedi';
-import { AccountService } from './account.service';
+import { accountService } from '../../util/container.util';
 import { ResponseEntity } from '../../util/response.util';
+import { IAccount } from './interface/account.interface';
+import {
+  admissionYearBodyValidation,
+  emailBodyValidation,
+  majorIdxBodyValidation,
+  nameBodyValidation,
+  passwordBodyValidation,
+} from './validation/account.validation';
+import { validate } from '../../middleware/validate.middleware';
 
-export const accountService = Container.get(AccountService);
 export const accountRouter = Router();
 
-accountRouter.get(
+/**
+ * @POST /account
+ * @Role None
+ * 회원가입
+ */
+accountRouter.post(
   '/',
+  validate([
+    emailBodyValidation,
+    passwordBodyValidation,
+    nameBodyValidation,
+    admissionYearBodyValidation,
+    majorIdxBodyValidation,
+  ]),
   wrapper(async (req, res, next) => {
-    const result = await accountService.say();
+    const signupInput: IAccount.ICreateAccount = req.body;
 
-    return res.send(ResponseEntity.SUCCESS_WITH(result));
+    const accountIdx = await accountService.createAccount(signupInput);
+
+    return res.status(200).send(ResponseEntity.SUCCESS_WITH({ accountIdx }));
   }),
 );
