@@ -3,18 +3,18 @@ import { HttpStatus } from './http-status.util';
 export class CustomError {
   statusCode: number;
   message: string;
-  reason?: any;
+  data?: any;
 
-  constructor(message: string, reason?: any) {
+  constructor(message: string, data?: any) {
     this.message = message;
   }
 }
 
 export class BadRequestException extends CustomError {
-  constructor(message: string = 'BadRequestException', reason: Object = {}) {
-    super(message, reason);
+  constructor(message: string = 'BadRequestException', data: Object = {}) {
+    super(message, data);
     this.statusCode = HttpStatus.BAD_REQUEST;
-    this.reason = reason;
+    this.data = data;
   }
 }
 

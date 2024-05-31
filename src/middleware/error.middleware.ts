@@ -21,7 +21,7 @@ export const errorHandling = () => {
       console.log(error);
       return res
         .status(error.statusCode)
-        .send(ResponseEntity.ERROR_WITH(error.statusCode, error.message, error.reason));
+        .send(ResponseEntity.ERROR_WITH(error.statusCode, error.message, error.data));
     }
 
     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(ResponseEntity.ERROR());
