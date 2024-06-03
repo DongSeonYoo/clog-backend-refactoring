@@ -1,6 +1,7 @@
 import IORedis from 'ioredis';
-import env from '../../config/env.config';
+
 import { Service } from 'typedi';
+import env from '../config/env.config';
 
 @Service()
 export class RedisService {

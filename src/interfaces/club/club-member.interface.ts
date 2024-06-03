@@ -1,5 +1,5 @@
-import { Position } from '@prisma/client';
-import { IAccount } from '../../account/interface/account.interface';
+import { IAccount } from '../account/account.interface';
+import { IPosition } from './club.enum';
 import { IClub } from './club.interface';
 
 export interface IClubMember {
@@ -16,7 +16,7 @@ export interface IClubMember {
   /**
    * 직급
    */
-  position: Position;
+  position: IPosition;
 
   /**
    * 가입 날짜

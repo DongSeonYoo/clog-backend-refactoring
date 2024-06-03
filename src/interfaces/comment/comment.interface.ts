@@ -1,5 +1,5 @@
-import { IAccount } from '../../account/interface/account.interface';
-import { IPost } from '../../post/interface/post.interface';
+import { IAccount } from './account.interface';
+import { IPost } from '../post/post.interface';
 
 export interface IComment {
   /**

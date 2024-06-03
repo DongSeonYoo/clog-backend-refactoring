@@ -1,5 +1,5 @@
+import { IMajor } from '../club/major.interface';
 import { IAccount } from './account.interface';
-import { IMajor } from './major.interface';
 
 export interface IAccountMajor {
   /**

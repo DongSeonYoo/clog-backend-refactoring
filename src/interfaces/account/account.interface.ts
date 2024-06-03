@@ -1,4 +1,4 @@
-import { IMajor } from './major.interface';
+import { IMajor } from '../club/major.interface';
 
 export interface IAccount {
   /**

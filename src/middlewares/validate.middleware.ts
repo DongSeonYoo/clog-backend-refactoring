@@ -1,7 +1,7 @@
 import express from 'express';
 import { validationResult, ValidationChain } from 'express-validator';
-import { HttpStatus } from '../util/http-status.util';
-import { ResponseEntity } from '../util/response.util';
+import { HttpStatus } from '../utils/http-status.util';
+import { ResponseEntity } from '../utils/response.util';
 
 export const validate = (validations: ValidationChain[]): express.RequestHandler => {
   return async (req, res, next) => {

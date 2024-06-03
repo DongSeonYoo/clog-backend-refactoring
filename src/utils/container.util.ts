@@ -1,7 +1,7 @@
 import Container from 'typedi';
-import { AuthService } from '../domain/auth/auth.service';
-import { AccountService } from '../domain/account/account.service';
-import { RedisService } from '../domain/redis/redis.service';
+import { AccountService } from '../services/account.service';
+import { AuthService } from '../services/auth.service';
+import { RedisService } from '../services/redis.service';
 
 export const authService = Container.get(AuthService);
 export const accountService = Container.get(AccountService);
