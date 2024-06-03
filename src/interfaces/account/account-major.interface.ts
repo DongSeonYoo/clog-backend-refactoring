@@ -10,5 +10,5 @@ export interface IAccountMajor {
   /**
    * 학과 인덱스
    */
-  majorIdx: IMajor['idx'];
+  majorIdx: IMajor['idx'][];
 }
