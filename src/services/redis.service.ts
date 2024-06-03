@@ -1,5 +1,4 @@
 import IORedis from 'ioredis';
-
 import { Service } from 'typedi';
 import env from '../config/env.config';
 

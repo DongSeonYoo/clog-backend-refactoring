@@ -13,7 +13,7 @@ export class AccountRepository {
    * @param email 이메일
    * @returns 유저 | null
    */
-  async findAccountByEmail(email: IAccount['email']): Promise<Pick<IAccount, 'idx'> | null> {
+  async findAccountByEmail(email: IAccount['email']): Promise<IAccount | null> {
     const [result] = await this.knex<IAccount>('account_tb').select('*').where({
       email,
       deletedAt: null,
