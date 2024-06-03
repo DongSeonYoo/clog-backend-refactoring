@@ -27,6 +27,11 @@ export interface IAccount {
   admissionYear: number;
 
   /**
+   * 퍼스널 컬러
+   */
+  personalColor: string;
+
+  /**
    * 학과
    */
   createdAt: Date;
@@ -44,7 +49,7 @@ export interface IAccount {
 
 export namespace IAccount {
   export interface ICreateAccount
-    extends Pick<IAccount, 'email' | 'password' | 'name' | 'admissionYear'> {
-    majorIdx: IMajor['idx'];
+    extends Pick<IAccount, 'email' | 'password' | 'name' | 'admissionYear' | 'personalColor'> {
+    major: Pick<IMajor, 'idx'>[];
   }
 }
