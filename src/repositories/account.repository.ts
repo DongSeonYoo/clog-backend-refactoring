@@ -11,10 +11,10 @@ export class AccountRepository {
   /**
    * 이메일로 유저를 찾는다
    * @param email 이메일
-   * @returns 유저 인덱스 | null
+   * @returns 유저 | null
    */
   async findAccountByEmail(email: IAccount['email']): Promise<Pick<IAccount, 'idx'> | null> {
-    const [result] = await this.knex<IAccount>('account_tb').select('idx').where({
+    const [result] = await this.knex<IAccount>('account_tb').select('*').where({
       email,
       deletedAt: null,
     });

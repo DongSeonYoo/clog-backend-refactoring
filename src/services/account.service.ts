@@ -13,8 +13,8 @@ export class AccountService {
     input: Omit<IAccount.ICreateAccount, 'personalColor'>,
   ): Promise<Pick<IAccount, 'idx'>> {
     // 1. 이메일 중복 체크
-    const email = await this.accountRepository.findAccountByEmail(input.email);
-    if (email) {
+    const foundAccount = await this.accountRepository.findAccountByEmail(input.email);
+    if (foundAccount) {
       throw new BadRequestException('이미 존재하는 이메일입니다.');
     }
 
