@@ -35,6 +35,11 @@ export interface IAccount {
    * 생성일
    */
   updatedAt: Date;
+
+  /**
+   * 삭제 여부
+   */
+  deletedAt: Date | null;
 }
 
 export namespace IAccount {

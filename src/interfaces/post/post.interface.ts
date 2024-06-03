@@ -1,5 +1,5 @@
-import { PostType } from '@prisma/client';
-import { IAccount } from '../../account/interface/account.interface';
+import { IAccount } from '../account/account.interface';
+import { IPostType } from './post-type.enum';
 
 export interface IPost {
   /**
@@ -15,7 +15,7 @@ export interface IPost {
   /**
    * 게시글 종류
    */
-  type: PostType;
+  type: IPostType;
 
   /**
    * 게시글 제목
@@ -36,4 +36,9 @@ export interface IPost {
    * 게시글 수정 날짜
    */
   updatedAt: Date;
+
+  /**
+   * 게시글 삭제 여부
+   */
+  deletedAt: Date | null;
 }

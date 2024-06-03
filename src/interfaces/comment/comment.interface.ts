@@ -1,4 +1,4 @@
-import { IAccount } from './account.interface';
+import { IAccount } from '../account/account.interface';
 import { IPost } from '../post/post.interface';
 
 export interface IComment {
@@ -21,4 +21,18 @@ export interface IComment {
    * 댓글 내용
    */
   content: string;
+
+  /**
+   * 작성 날짜
+   */
+  createdAt: string;
+
+  /**
+   * 수정 날짜
+   */
+
+  /**
+   * 삭제 여부
+   */
+  deletedAt: Date | null;
 }

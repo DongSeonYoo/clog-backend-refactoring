@@ -1,4 +1,4 @@
-import { IClub } from '../../club/interface/club.interface';
+import { IClub } from '../club/club.interface';
 import { IPost } from './post.interface';
 
 export interface IPromotionPost extends IPost {

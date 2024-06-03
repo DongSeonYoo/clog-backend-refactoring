@@ -57,4 +57,9 @@ export interface IClub {
    * 수정 일
    */
   updatedAt: Date;
+
+  /**
+   * 삭제 여부
+   */
+  deletedAt: Date | null;
 }

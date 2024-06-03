@@ -22,4 +22,9 @@ export interface IClubMember {
    * 가입 날짜
    */
   createdAt: string;
+
+  /**
+   * 삭제 여부
+   */
+  deletedAt: Date | null;
 }

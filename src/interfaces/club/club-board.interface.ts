@@ -20,4 +20,9 @@ export interface IClubBoard {
    * 게시판 생성일
    */
   createdAt: Date;
+
+  /**
+   * 삭제 여부
+   */
+  deletedAt: Date | null;
 }

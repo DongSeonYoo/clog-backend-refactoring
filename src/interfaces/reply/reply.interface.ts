@@ -1,5 +1,5 @@
-import { IAccount } from '../../account/interface/account.interface';
-import { IComment } from '../../coment/interface/comment.interface';
+import { IAccount } from '../account/account.interface';
+import { IComment } from '../comment/comment.interface';
 
 export interface IReply {
   /**
@@ -31,4 +31,9 @@ export interface IReply {
    * 수정일
    */
   updatedAt: Date;
+
+  /**
+   * 삭제 여부
+   */
+  deletedAt: Date | null;
 }
