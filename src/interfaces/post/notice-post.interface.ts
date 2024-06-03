@@ -1,5 +1,5 @@
+import { IClub } from '../club/club.interface';
 import { IPost } from './post.interface';
-import { IClub } from '../../club/interface/club.interface';
 
 export interface INoticePost extends IPost {
   /**

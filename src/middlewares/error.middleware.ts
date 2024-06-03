@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { CustomError } from '../util/custom-error.util';
-import { HttpStatus } from '../util/http-status.util';
-import { ResponseEntity } from '../util/response.util';
+import { CustomError } from '../utils/custom-error.util';
+import { HttpStatus } from '../utils/http-status.util';
+import { ResponseEntity } from '../utils/response.util';
 import env from '../config/env.config';
 
 export const errorHandling = () => {

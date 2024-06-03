@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import express from 'express';
-import { errorHandling } from './middleware/error.middleware';
-import { accountRouter } from './domain/account/account.router';
+import { errorHandling } from './middlewares/error.middleware';
+import { accountRouter } from './routes/account.router';
 
 const app = express();
 
