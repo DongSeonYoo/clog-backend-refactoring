@@ -1,7 +1,4 @@
 import { Router } from 'express';
-import { wrapper } from '../utils/wrapper.util';
-import { accountService } from '../utils/container.util';
-import { ResponseEntity } from '../utils/response.util';
 import {
   admissionYearBodyValidation,
   emailBodyValidation,
@@ -10,9 +7,12 @@ import {
   passwordBodyValidation,
 } from '../utils/validation/account.validation';
 import { validate } from '../middlewares/validate.middleware';
-import { IAccount } from '../interfaces/account/account.interface';
+import Container from 'typedi';
+import { AccountService } from '../services/account.service';
 
 export const accountRouter = Router();
+
+export const accountService = Container.get(AccountService);
 
 /**
  * @POST /account
@@ -22,10 +22,15 @@ export const accountRouter = Router();
 accountRouter.post(
   '/',
   validate([
-    emailBodyValidation,
-    passwordBodyValidation,
-    nameBodyValidation,
-    admissionYearBodyValidation,
-    majorIdxBodyValidation,
+    // emailBodyValidation,
+    // passwordBodyValidation,
+    // nameBodyValidation,
+    // admissionYearBodyValidation,
+    // majorIdxBodyValidation,
   ]),
+  async (req, res) => {
+    const result = await accountService.someFunc(71);
+
+    return res.send(result);
+  },
 );

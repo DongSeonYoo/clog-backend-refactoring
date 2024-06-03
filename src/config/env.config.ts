@@ -12,6 +12,12 @@ const env = {
   //server port
   HTTP_PORT: Number(process.env.HTTP_PORT),
 
+  // database info
+  DATABASE_HOST: process.env.DATABASE_HOST as string,
+  DATABASE_USER_NAME: process.env.DATABASE_USER_NAME as string,
+  DATABASE_PASSWORD: process.env.DATABASE_PASSWORD as string,
+  DATABASE_NAME: process.env.DATABASE_NAME as string,
+
   // session secret key
   SESSION_SECRET_KEY: process.env.SESSION_SECRET_KEY as string,
 
@@ -30,17 +36,6 @@ const env = {
   AWS_S3_BUCKET_NAME: process.env.AWS_BUCKET_NAME as string,
 
   COOKIE_NAME: 'connect.sid',
-
-  // lecture video path
-  VIDEO_DIRECTORY_PATH: process.env.VIDEO_DIRECTORY_PATH as string,
-
-  // admin login info
-  ADMIN_LOGIN_ID: process.env.ADMIN_LOGIN_ID as string,
-  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD as string,
-  ADMIN_PHONE_NUMBER: process.env.ADMIN_PHONE_NUMBER as string,
-
-  // lecture watch second
-  DEFAULT_VIDEO_WATCH_SECOND: Number(process.env.DEFAULT_VIDEO_WATCH_SECOND) as number,
 };
 
 export default env;

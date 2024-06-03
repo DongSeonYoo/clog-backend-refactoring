@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import './config/knex.config';
 import express from 'express';
 import { errorHandling } from './middlewares/error.middleware';
 import { accountRouter } from './routes/account.router';
