@@ -2,13 +2,16 @@ import { Router } from 'express';
 import {
   admissionYearBodyValidation,
   emailBodyValidation,
-  majorIdxBodyValidation,
+  majorIdxBodyArrayValidation,
   nameBodyValidation,
   passwordBodyValidation,
 } from '../utils/validation/account.validation';
 import { validate } from '../middlewares/validate.middleware';
 import Container from 'typedi';
 import { AccountService } from '../services/account.service';
+import { IAccount } from '../interfaces/account/account.interface';
+import { ResponseEntity } from '../utils/response.util';
+import { wrapper } from '../utils/wrapper.util';
 
 export const accountRouter = Router();
 
@@ -22,15 +25,17 @@ export const accountService = Container.get(AccountService);
 accountRouter.post(
   '/',
   validate([
-    // emailBodyValidation,
-    // passwordBodyValidation,
-    // nameBodyValidation,
-    // admissionYearBodyValidation,
-    // majorIdxBodyValidation,
+    emailBodyValidation,
+    passwordBodyValidation,
+    nameBodyValidation,
+    admissionYearBodyValidation,
+    ...majorIdxBodyArrayValidation,
   ]),
-  async (req, res) => {
-    const result = await accountService.someFunc(71);
+  wrapper(async (req, res, next) => {
+    const input: Omit<IAccount.ICreateAccount, 'personalColor'> = req.body;
 
-    return res.send(result);
-  },
+    const accountIdx = await accountService.createAccount(input);
+
+    return res.send(ResponseEntity.SUCCESS_WITH({ accountIdx }, '회원가입 성공'));
+  }),
 );
