@@ -24,6 +24,9 @@ export const admissionYearBodyValidation: ValidationChain = body('admissionYear'
   .toInt();
 
 /**
- * @param majorIdx 학과 인덱스
+ * @body majorIdx[{idx: number}] 학과 인덱스 배열
  */
-export const majorIdxBodyValidation: ValidationChain = body('majorIdx').notEmpty().isInt().toInt();
+export const majorIdxBodyArrayValidation: ValidationChain[] = [
+  body('major').notEmpty().isArray({ min: 1 }),
+  body('major.*.idx').notEmpty().isInt().toInt(),
+];
