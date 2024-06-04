@@ -4,7 +4,7 @@ import { IJwtPayload } from '../interfaces/auth/jwt-payload.interface';
 
 export namespace TokenManager {
   export const generate = (userInfo: IJwtPayload) => {
-    const issuer = 'ecodot';
+    const issuer = 'clog-refactoring';
 
     return jwt.sign(userInfo, env.JWT_SECRET_KEY, {
       issuer,

@@ -4,10 +4,12 @@ import express from 'express';
 import { errorHandling } from './middlewares/error.middleware';
 import { accountRouter } from './routes/account.router';
 import { authRouter } from './routes/auth.router';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
 // 전역 미들웨어
+app.use(cookieParser());
 app.use(express.json());
 
 // 라우터 등록
