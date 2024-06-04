@@ -28,7 +28,7 @@ export class AccountRepository {
    * @returns 찾은 전공 인덱스 배열
    */
   async findMajorIdx(majorArr: Pick<IMajor, 'idx'>[]): Promise<Pick<IAccount, 'idx'>[]> {
-    const foundMajorArr = await this.knex<IMajor>('major_tb')
+    const foundMajorArr = await this.knex('major_tb')
       .select('idx')
       .whereIn(
         'idx',
@@ -45,7 +45,7 @@ export class AccountRepository {
    */
   async createAccount(signupInput: IAccount.ICreateAccount): Promise<IAccount['idx']> {
     const accountIdx = await this.knex.transaction(async (tx) => {
-      const [createAccount] = await tx<IAccount>('account_tb')
+      const [createAccount] = await tx('account_tb')
         .insert({
           name: signupInput.name,
           email: signupInput.email,
@@ -56,7 +56,7 @@ export class AccountRepository {
         .returning('idx');
 
       // 사용자는 여러 개의 전공을 가질 수 있음
-      await tx<IAccountMajor>('account_major_tb').insert(
+      await tx('account_major_tb').insert(
         signupInput.major.map((major) => ({
           accountIdx: createAccount.idx,
           majorIdx: major.idx,
