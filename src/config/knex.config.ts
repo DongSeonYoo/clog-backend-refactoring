@@ -13,14 +13,14 @@ const dbConfig: Knex.Config = {
     database: env.DATABASE_NAME,
   },
   ...knexSnakeCaseMappers(),
-  // wrapIdentifier: (value, origImpl, queryContext) => {
-  //   const camelToSnakeCase = (str: string) =>
-  //     str.replace(/[A-Z]/g, (letter) => {
-  //       return `_${letter.toLowerCase()}`;
-  //     });
+  wrapIdentifier: (value, origImpl, queryContext) => {
+    const camelToSnakeCase = (str: string) =>
+      str.replace(/[A-Z]/g, (letter) => {
+        return `_${letter.toLowerCase()}`;
+      });
 
-  //   return camelToSnakeCase(value);
-  // },
+    return camelToSnakeCase(value);
+  },
 };
 
 // knex 의존성 등록
