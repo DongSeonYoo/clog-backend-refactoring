@@ -4,6 +4,13 @@ import { HttpStatus } from '../utils/http-status.util';
 import { ResponseEntity } from '../utils/response.util';
 import env from '../config/env.config';
 
+/**
+ * SyntaxError는 JSON 형태가 잘못되었을 때 발생하는 에러
+ * JSON 형태가 잠였을 때 400 에러를 반환
+ * CustomError는 직접 정의한 에러
+ * 에러 코드와 메시지를 반환
+ * 그 외의 에러는 500 에러를 반환
+ */
 export const errorHandling = () => {
   return (error: CustomError | Error, req: Request, res: Response, next: NextFunction) => {
     // 개발환경 전용
