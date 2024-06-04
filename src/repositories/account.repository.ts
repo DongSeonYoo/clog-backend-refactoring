@@ -68,4 +68,23 @@ export class AccountRepository {
 
     return accountIdx;
   }
+
+  /**
+   * 1. Join시 select쪽에서 타입추론이 안된다.. 그래서 조인 된 테이블에 같은 이름 나오면 런타임에러 터진다.
+   * 2. 모든 테이블에 외래키가 (부모테이블이름)Idx로 되어있는데 knex 테이블에 타입 지정 시에 그대로 엔티티 인터페이스 박아버리면 프로퍼티는 카멜케이스가 되어버립니다... 만약 이렇게 되면 knex.config에 가서 wrapIdentifier속성에 camelToSnakeCase함수 박아서 카멜 -> 스네이크로 바꿔줘야댐
+   * 3. 어플리케이션단에서는 카멜, db스키마는 스네이크잖아? 쿼리빌더에서 쿼리날릴때는 어플리케이션이라고봐도되는건가..
+   * - 3-1. select('property_name').from('some_table').where('idx', 1);
+   * - 3-2. select('propertyName').from('someTable').where('idx', 1);
+   * 에반데...
+   */
+  async getAccountProfile(accountIdx: IAccount['idx']): Promise<void> {
+    const result = await this.knex('account_major_tb')
+      .select()
+      .from('account_major_tb')
+      .join('account_tb', 'account_major_tb.accountIdx', 'account_tb.idx')
+      .join('major_tb', 'account_major_tb.majorIdx', 'major_tb.idx')
+      .where('accountIdx', accountIdx);
+
+    console.log(result);
+  }
 }
