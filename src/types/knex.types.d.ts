@@ -25,25 +25,25 @@ namespace ConvertTableProperty {
 
 declare module 'knex/types/tables' {
   interface Tables {
-    account_tb: IAccount;
-    account_major_tb: IAccountMajor;
-    major_tb: IMajor;
+    account: IAccount;
+    accountMajor: IAccountMajor;
+    major: IMajor;
 
-    club_tb: IClub;
-    club_board_tb: IClubBoard;
-    club_member_tb: IClubMember;
-    join_request_tb: IJoinRequest;
-    big_category_tb: IBigCategory;
-    small_category_tb: ISmallCategory;
-    belong_tb: IBelong;
+    club: IClub;
+    clubBoard: IClubBoard;
+    clubMember: IClubMember;
+    joinRequest: IJoinRequest;
+    bigCategory: IBigCategory;
+    smallCategory: ISmallCategory;
+    belong: IBelong;
 
-    post_tb: IPost;
-    post_img_tb: IPostImg;
-    general_post_tb: IGeneralPost;
-    notice_post_tb: INoticePost;
-    promotion_post_tb: IPromotionPost;
+    post: IPost;
+    postImg: IPostImg;
+    generalPost: IGeneralPost;
+    noticePost: INoticePost;
+    promotionPost: IPromotionPost;
 
-    comment_tb: IComment;
-    reply_tb: IReply;
+    comment: IComment;
+    reply: IReply;
   }
 }
