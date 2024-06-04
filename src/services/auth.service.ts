@@ -39,11 +39,24 @@ export class AuthService {
     };
   }
 
-  async generateToken(payload: Pick<IJwtPayload, 'idx' | 'email'>): Promise<string> {
+  /**
+   * 토큰 생성 후 로그인 세션 저장
+   * @param payload 토큰 페이로드에 사용될 유저 정보
+   */
+  async createSession(payload: Pick<IJwtPayload, 'idx' | 'email'>): Promise<void> {
     const token = TokenManager.generate({ ...payload, loggedInAt: new Date() });
 
-    await this.redisService.client.set(`session:${payload.idx}`, token, 'EX', env.LOGIN_TTL);
+    await this.setLoginSession(payload.idx, token);
 
-    return token;
+    return;
+  }
+
+  /**
+   *
+   * @param idx 사용자 인덱스
+   * @param token 토큰
+   */
+  private async setLoginSession(idx: number, token: string): Promise<void> {
+    await this.redisService.client.set(`session:${idx}`, token, 'EX', env.LOGIN_TTL);
   }
 }

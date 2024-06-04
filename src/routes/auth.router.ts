@@ -27,7 +27,7 @@ authRouter.post(
 
     const accountInfo = await accountService.login(input);
 
-    await authService.generateToken(accountInfo);
+    await authService.createSession(accountInfo);
 
     return res.status(201).send(ResponseEntity.SUCCESS());
   }),
