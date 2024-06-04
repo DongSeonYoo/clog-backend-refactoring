@@ -9,6 +9,7 @@ import Container from 'typedi';
 import { AuthService } from '../services/auth.service';
 import { IAuth } from '../interfaces/auth/auth.interface';
 import { ResponseEntity } from '../utils/response.util';
+import env from '../config/env.config';
 
 export const authRouter = Router();
 export const accountService = Container.get(AuthService);
@@ -27,7 +28,13 @@ authRouter.post(
 
     const accountInfo = await accountService.login(input);
 
-    await authService.createSession(accountInfo);
+    const token = await authService.createSession(accountInfo);
+
+    res.cookie(env.SESSION_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: true,
+      maxAge: env.LOGIN_TTL * 1000,
+    });
 
     return res.status(201).send(ResponseEntity.SUCCESS());
   }),

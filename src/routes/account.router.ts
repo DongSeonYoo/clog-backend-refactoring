@@ -39,3 +39,13 @@ accountRouter.post(
     return res.send(ResponseEntity.SUCCESS_WITH({ accountIdx }, '회원가입 성공'));
   }),
 );
+
+/**
+ * @GET /account
+ * @Role User
+ * 내 정보 조회
+ */
+accountRouter.get(
+  '/',
+  wrapper(async (req, res, next) => {}),
+);

@@ -35,7 +35,7 @@ const env = {
   AWS_SECRET_ACCESS_KEY_ID: process.env.AWS_SECRET_ACCESS_KEY_ID as string,
   AWS_S3_BUCKET_NAME: process.env.AWS_BUCKET_NAME as string,
 
-  COOKIE_NAME: 'connect.sid',
+  SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME || 'connect.sid',
 };
 
 export default env;
