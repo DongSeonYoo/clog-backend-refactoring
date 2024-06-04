@@ -3,6 +3,7 @@ import { Inject, Service } from 'typedi';
 import { IAccount } from '../interfaces/account/account.interface';
 import { IMajor } from '../interfaces/club/major.interface';
 import { IAccountMajor } from '../interfaces/account/account-major.interface';
+import IAccountProfileResponse = IAccount.IAccountProfileResponse;
 
 @Service()
 export class AccountRepository {
@@ -14,10 +15,13 @@ export class AccountRepository {
    * @returns 유저 | null
    */
   async findAccountByEmail(email: IAccount['email']): Promise<IAccount | undefined> {
-    const [result] = await this.knex<IAccount>('account_tb').select('*').where({
-      email,
-      deletedAt: null,
-    });
+    const result = await this.knex('account')
+      .select('*')
+      .where({
+        email,
+        deletedAt: null,
+      })
+      .first();
 
     return result;
   }
@@ -28,7 +32,7 @@ export class AccountRepository {
    * @returns 찾은 전공 인덱스 배열
    */
   async findMajorIdx(majorArr: Pick<IMajor, 'idx'>[]): Promise<Pick<IAccount, 'idx'>[]> {
-    const foundMajorArr = await this.knex('major_tb')
+    const foundMajorArr = await this.knex('major')
       .select('idx')
       .whereIn(
         'idx',
@@ -45,7 +49,7 @@ export class AccountRepository {
    */
   async createAccount(signupInput: IAccount.ICreateAccount): Promise<IAccount['idx']> {
     const accountIdx = await this.knex.transaction(async (tx) => {
-      const [createAccount] = await tx('account_tb')
+      const [createAccount] = await tx('account')
         .insert({
           name: signupInput.name,
           email: signupInput.email,
@@ -56,7 +60,7 @@ export class AccountRepository {
         .returning('idx');
 
       // 사용자는 여러 개의 전공을 가질 수 있음
-      await tx('account_major_tb').insert(
+      await tx('accountMajor').insert(
         signupInput.major.map((major) => ({
           accountIdx: createAccount.idx,
           majorIdx: major.idx,
@@ -70,21 +74,25 @@ export class AccountRepository {
   }
 
   /**
-   * 1. Join시 select쪽에서 타입추론이 안된다.. 그래서 조인 된 테이블에 같은 이름 나오면 런타임에러 터진다.
-   * 2. 모든 테이블에 외래키가 (부모테이블이름)Idx로 되어있는데 knex 테이블에 타입 지정 시에 그대로 엔티티 인터페이스 박아버리면 프로퍼티는 카멜케이스가 되어버립니다... 만약 이렇게 되면 knex.config에 가서 wrapIdentifier속성에 camelToSnakeCase함수 박아서 카멜 -> 스네이크로 바꿔줘야댐
-   * 3. 어플리케이션단에서는 카멜, db스키마는 스네이크잖아? 쿼리빌더에서 쿼리날릴때는 어플리케이션이라고봐도되는건가..
-   * - 3-1. select('property_name').from('some_table').where('idx', 1);
-   * - 3-2. select('propertyName').from('someTable').where('idx', 1);
-   * 에반데...
+   * 사용자 프로필 조회
+   * @param accountIdx 사용자 인덱스
    */
-  async getAccountProfile(accountIdx: IAccount['idx']): Promise<void> {
-    const result = await this.knex('account_major_tb')
-      .select()
-      .from('account_major_tb')
-      .join('account_tb', 'account_major_tb.accountIdx', 'account_tb.idx')
-      .join('major_tb', 'account_major_tb.majorIdx', 'major_tb.idx')
+  async getAccountProfile(accountIdx: IAccount['idx']): Promise<IAccount.IAccountProfileResponse> {
+    // 사용자 정보 조회
+    const [accountProfileInfo] = await this.knex('account')
+      .select('name', 'personalColor', 'admissionYear', 'createdAt')
+      .where('idx', accountIdx)
+      .andWhere('deletedAt', null);
+
+    // 사용자의 전공 정보 조회
+    const majorNameList: Pick<IMajor, 'name'>[] = await this.knex('accountMajor')
+      .select('major.name')
+      .join('major', 'accountMajor.majorIdx', 'major.idx')
       .where('accountIdx', accountIdx);
 
-    console.log(result);
+    return {
+      ...accountProfileInfo,
+      major: majorNameList,
+    };
   }
 }

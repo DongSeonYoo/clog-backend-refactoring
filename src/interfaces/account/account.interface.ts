@@ -52,4 +52,9 @@ export namespace IAccount {
     extends Pick<IAccount, 'email' | 'password' | 'name' | 'admissionYear' | 'personalColor'> {
     major: Pick<IMajor, 'idx'>[];
   }
+
+  export interface IAccountProfileResponse
+    extends Pick<IAccount, 'name' | 'personalColor' | 'admissionYear' | 'createdAt'> {
+    major: Pick<IMajor, 'name'>[];
+  }
 }

@@ -40,4 +40,12 @@ export class AccountService {
       idx: accountIdx,
     };
   }
+
+  /**
+   * 사용자 프로필 조회
+   * @param accountIdx 사용자 인덱스
+   */
+  async getAccountProfile(accountIdx: IAccount['idx']): Promise<IAccount.IAccountProfileResponse> {
+    return this.accountRepository.getAccountProfile(accountIdx);
+  }
 }

@@ -12,6 +12,7 @@ import { AccountService } from '../services/account.service';
 import { IAccount } from '../interfaces/account/account.interface';
 import { ResponseEntity } from '../utils/response.util';
 import { wrapper } from '../utils/wrapper.util';
+import { loginAuthGuard } from '../middlewares/login-auth.middleware';
 
 export const accountRouter = Router();
 
@@ -41,11 +42,18 @@ accountRouter.post(
 );
 
 /**
- * @GET /account
+ * @GET /account/profile
  * @Role User
  * 내 정보 조회
  */
 accountRouter.get(
-  '/',
-  wrapper(async (req, res, next) => {}),
+  '/profile',
+  loginAuthGuard(),
+  wrapper(async (req, res, next) => {
+    const accountIdx = req.user.idx;
+
+    const accountProfile = await accountService.getAccountProfile(accountIdx);
+
+    return res.send(ResponseEntity.SUCCESS_WITH(accountProfile));
+  }),
 );
