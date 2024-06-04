@@ -28,7 +28,7 @@ const env = {
   REDIS_URL: process.env.REDIS_URL || 'redis://127.0.0.1:6379',
 
   // login expired time
-  LOGIN_TTL: Number(process.env.LOGIN_TTL),
+  LOGIN_TTL: Number(process.env.LOGIN_TTL) as number,
 
   // AWS configuration
   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID as string,
