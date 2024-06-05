@@ -2,8 +2,6 @@ import { Knex } from 'knex';
 import { Inject, Service } from 'typedi';
 import { IAccount } from '../interfaces/account/account.interface';
 import { IMajor } from '../interfaces/club/major.interface';
-import { IAccountMajor } from '../interfaces/account/account-major.interface';
-import IAccountProfileResponse = IAccount.IAccountProfileResponse;
 
 @Service()
 export class AccountRepository {
@@ -77,22 +75,44 @@ export class AccountRepository {
    * 사용자 프로필 조회
    * @param accountIdx 사용자 인덱스
    */
-  async getAccountProfile(accountIdx: IAccount['idx']): Promise<IAccount.IAccountProfileResponse> {
-    // 사용자 정보 조회
+  async getAccountProfile(
+    accountIdx: IAccount['idx'],
+  ): Promise<Pick<IAccount, 'name' | 'personalColor' | 'admissionYear' | 'createdAt'>> {
     const [accountProfileInfo] = await this.knex('account')
       .select('name', 'personalColor', 'admissionYear', 'createdAt')
       .where('idx', accountIdx)
       .andWhere('deletedAt', null);
 
-    // 사용자의 전공 정보 조회
-    const majorNameList: Pick<IMajor, 'name'>[] = await this.knex('accountMajor')
+    return accountProfileInfo;
+  }
+
+  /**
+   * 사용자의 전공 정보 조회
+   * @param accountIdx 사용자 인덱스
+   */
+  async getAccountMajor(accountIdx: IAccount['idx']): Promise<Pick<IMajor, 'name'>[]> {
+    const accountMajorList: Pick<IMajor, 'name'>[] = await this.knex('accountMajor')
       .select('major.name')
       .join('major', 'accountMajor.majorIdx', 'major.idx')
       .where('accountIdx', accountIdx);
 
-    return {
-      ...accountProfileInfo,
-      major: majorNameList,
-    };
+    return accountMajorList.map((major) => ({
+      name: major.name,
+    }));
+  }
+
+  async updateAccountInfo(
+    accountInfo: IAccount.IUpdateProfileRequest,
+    accountIdx: IAccount['idx'],
+  ) {
+    const result = await this.knex('account')
+      .update({
+        email: 'inko123',
+      })
+      .where('idx', 89);
+
+    console.log(result);
+
+    return result;
   }
 }

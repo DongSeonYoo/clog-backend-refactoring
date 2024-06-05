@@ -46,6 +46,12 @@ export class AccountService {
    * @param accountIdx 사용자 인덱스
    */
   async getAccountProfile(accountIdx: IAccount['idx']): Promise<IAccount.IAccountProfileResponse> {
-    return this.accountRepository.getAccountProfile(accountIdx);
+    const majorList = await this.accountRepository.getAccountMajor(accountIdx);
+    const profile = await this.accountRepository.getAccountProfile(accountIdx);
+
+    return {
+      ...profile,
+      major: majorList,
+    };
   }
 }
