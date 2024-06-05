@@ -117,18 +117,33 @@ export class AccountRepository {
     }));
   }
 
+  /**
+   * 사용자 프로필 수정
+   * @param accountInput 사용자 프로필 수정 정보
+   * @param accountIdx 수정할 사용자 인덱스
+   */
   async updateAccountInfo(
-    accountInfo: IAccount.IUpdateProfileRequest,
+    accountInput: IAccount.IUpdateProfileRequest,
     accountIdx: IAccount['idx'],
   ) {
-    const result = await this.knex('account')
-      .update({
-        email: 'inko123',
-      })
-      .where('idx', 89);
+    await this.knex.transaction(async (tx) => {
+      const { major, ...accountDetails } = accountInput;
 
-    console.log(result);
+      // account 테이블 업데이트
+      await tx('account').update(accountDetails).where('idx', accountIdx);
 
-    return result;
+      if (accountInput.major) {
+        // 기존 accountMajor 레코드 삭제
+        await tx('accountMajor').where('accountIdx', accountIdx).del();
+
+        // accountMajor 테이블 업데이트
+        await tx('accountMajor').insert(
+          accountInput.major.map((major) => ({
+            accountIdx,
+            majorIdx: major.idx,
+          })),
+        );
+      }
+    });
   }
 }

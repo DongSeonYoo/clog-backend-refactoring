@@ -57,4 +57,10 @@ export namespace IAccount {
     extends Pick<IAccount, 'name' | 'personalColor' | 'admissionYear' | 'createdAt'> {
     major: Pick<IMajor, 'name'>[];
   }
+
+  export interface IUpdateProfileRequest {
+    name?: string;
+    admissionYear?: number;
+    major?: Pick<IMajor, 'idx'>[];
+  }
 }

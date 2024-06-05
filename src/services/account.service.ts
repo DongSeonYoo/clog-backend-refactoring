@@ -1,7 +1,7 @@
 import { Service } from 'typedi';
 import { AccountRepository } from '../repositories/account.repository';
 import { IAccount } from '../interfaces/account/account.interface';
-import { BadRequestException } from '../utils/custom-error.util';
+import { BadRequestException, NotFoundException } from '../utils/custom-error.util';
 import { BcryptUtil } from '../utils/bcrypt.util';
 import { generateRandomColorCode } from '../utils/personal-color.util';
 
@@ -53,5 +53,31 @@ export class AccountService {
       ...profile,
       major: majorList,
     };
+  }
+
+  /**
+   * 사용자 프로필 수정
+   * @param input 사용자 프로필 수정 정보
+   * @param accountIdx 수정할 사용자 인덱스
+   */
+  async updateAccountProfile(
+    input: IAccount.IUpdateProfileRequest,
+    accountIdx: IAccount['idx'],
+  ): Promise<void> {
+    const foundAccountResult = await this.accountRepository.findAccountByIdx(accountIdx);
+    if (!foundAccountResult) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+
+    if (input.major) {
+      const findMajorList = await this.accountRepository.findMajorIdx(input.major);
+      if (findMajorList.length !== input.major.length) {
+        throw new BadRequestException('존재하지 않는 전공이 포함되어 있습니다.');
+      }
+    }
+
+    await this.accountRepository.updateAccountInfo(input, accountIdx);
+
+    return;
   }
 }
