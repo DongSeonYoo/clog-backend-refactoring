@@ -26,8 +26,10 @@ authRouter.post(
     // 로그인 로직 수행
     const accountInfo = await authService.login(input);
 
+    // 세션 생성 & 토큰 발급
     const token = await authService.createSession(accountInfo);
 
+    // 응답 헤더에 발급된 토큰 발행
     res.cookie(env.SESSION_COOKIE_NAME, token, {
       httpOnly: true,
       secure: true,
