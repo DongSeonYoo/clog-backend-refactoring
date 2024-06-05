@@ -1,137 +1,131 @@
-import { mock, MockProxy } from 'jest-mock-extended';
-import { IAccount } from '../../../src/interfaces/account/account.interface';
+import { mock, mockDeep, MockProxy } from 'jest-mock-extended';
 import { AccountRepository } from '../../../src/repositories/account.repository';
-import { AccountService } from '../../../src/services/account.service';
-import { BadRequestException, NotFoundException } from '../../../src/utils/custom-error.util';
+import { AuthService } from '../../../src/services/auth.service';
+import { RedisService } from '../../../src/services/redis.service';
+import { IAccount } from '../../../src/interfaces/account/account.interface';
+import { IAuth } from '../../../src/interfaces/auth/auth.interface';
+import { BadRequestException } from '../../../src/utils/custom-error.util';
+import { BcryptUtil } from '../../../src/utils/bcrypt.util';
+import { TokenManager } from '../../../src/utils/token-manager.util';
+import env from '../../../src/config/env.config';
 
-describe('AccountService', () => {
-  let accountService: AccountService;
+describe('AuthService', () => {
+  let authService: AuthService;
+  let mockRedisService: MockProxy<RedisService>;
   let mockAccountRepository: MockProxy<AccountRepository>;
 
   beforeEach(() => {
+    mockRedisService = mockDeep<RedisService>();
     mockAccountRepository = mock<AccountRepository>();
-    accountService = new AccountService(mockAccountRepository);
+    authService = new AuthService(mockAccountRepository, mockRedisService);
   });
 
-  describe('getAccountProfile', () => {
-    it('사용자의 프로필을 가져온다', async () => {
+  describe('login', () => {
+    it('아이디가 일치하지 않으면 BadRequestException을 던진다', async () => {
       // given
-      const accountIdx = 1;
-      const expectedResult: IAccount.IAccountProfileResponse = {
-        name: 'test',
-        admissionYear: 21,
-        personalColor: '#ffffff',
-        createdAt: new Date(),
-        major: [
-          {
-            name: '컴퓨터공학',
-          },
-        ],
+      const loginInput: IAuth.ILogin = {
+        email: 'wrongEmail@google.com',
+        password: 'password',
       };
-      const expectAccountInfo = {
-        name: 'test',
-        admissionYear: 21,
-        personalColor: '#ffffff',
-        createdAt: new Date(),
-      };
-      const expectMajorInfo = [
-        {
-          name: '컴퓨터공학',
-        },
-      ];
 
       // when
-      mockAccountRepository.getAccountProfile.mockResolvedValue(expectAccountInfo);
-      mockAccountRepository.getAccountMajor.mockResolvedValue(expectMajorInfo);
+      mockAccountRepository.findAccountByEmail.mockResolvedValue(undefined);
 
       // then
-      expect(await accountService.getAccountProfile(accountIdx)).toStrictEqual(expectedResult);
+      await expect(authService.login(loginInput)).rejects.toBeInstanceOf(BadRequestException);
     });
-  });
 
-  describe('createAccount', () => {
-    // given
-    const signupInput: Omit<IAccount.ICreateAccount, 'personalColor'> = {
-      email: 'test@google.com',
-      password: 'test',
-      name: 'test',
-      major: [{ idx: 1 }],
-      admissionYear: 21,
-    };
+    it('비밀번호가 일치하지 않으면 BadRequestException을 던진다', async () => {
+      // given
+      const loginInput: IAuth.ILogin = {
+        email: 'email@google.com',
+        password: 'wrongPassword',
+      };
 
-    it('중복된 이메일이 존재 할 경우 BadRequestException이 발생된다', async () => {
       // when
       mockAccountRepository.findAccountByEmail.mockResolvedValue({} as IAccount);
+      jest.spyOn(BcryptUtil, 'compare').mockResolvedValue(false);
 
       // then
-      await expect(accountService.createAccount(signupInput)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(authService.login(loginInput)).rejects.toBeInstanceOf(BadRequestException);
     });
 
-    it('존재하지 않는 전공이 포함되어 있을 경우 BadRequestException이 발생된다', async () => {
+    it('로그인 성공 시 token의 payload 반환', async () => {
+      // given
+      const loginInput: IAuth.ILogin = {
+        email: '',
+        password: '',
+      };
+      const tokenPayload = {
+        email: 'email@google.com',
+        idx: 1,
+      };
+
       // when
-      mockAccountRepository.findMajorIdx.mockResolvedValue([]);
+      mockAccountRepository.findAccountByEmail.mockResolvedValue(tokenPayload as IAccount);
+      jest.spyOn(BcryptUtil, 'compare').mockResolvedValue(true);
 
       // then
-      await expect(accountService.createAccount(signupInput)).rejects.toBeInstanceOf(
-        BadRequestException,
+      expect(await authService.login(loginInput)).toStrictEqual(tokenPayload);
+    });
+  });
+
+  describe('createToken', () => {
+    it('payload에 사용될 유저 정보를 받아 토큰을 생성한다.', async () => {
+      // given
+      const payload = {
+        idx: 1,
+        email: 'email@google.com',
+      };
+      const token = 'token';
+
+      // when
+      jest.spyOn(TokenManager, 'generate').mockReturnValue(token);
+
+      // then
+      await expect(authService.createToken(payload)).resolves.toBe(token);
+    });
+
+    it('토큰 생성 시 payload에 loggedInAt을 추가한다.', async () => {
+      // given
+      const payload = {
+        idx: 1,
+        email: '',
+      };
+
+      // when
+      await authService.createToken(payload);
+
+      // then
+      jest.spyOn(TokenManager, 'generate').mockImplementation((jwtPayload) => {
+        expect(jwtPayload.loggedInAt).toBeDefined();
+        return 'token!';
+      });
+    });
+  });
+
+  describe('setLoginSession', () => {
+    it('레디스에 세션 정보 저장', async () => {
+      // given
+      const accountIdx = 1;
+      const token = 'token';
+
+      // when
+      const mockRedisSpy = jest.spyOn(mockRedisService.client, 'set');
+      await authService.setLoginSession(accountIdx, token);
+
+      // then
+      expect(mockRedisSpy).toHaveBeenCalledTimes(1);
+      expect(mockRedisSpy).toHaveBeenCalledWith(
+        `session:${accountIdx}`,
+        token,
+        'EX',
+        env.LOGIN_TTL,
       );
     });
   });
 
-  describe('updateAccountProfile', () => {
-    it('사용자의 프로필을 수정한다', async () => {
-      // given
-      const accountIdx = 1;
-      const updateInput: IAccount.IUpdateProfileRequest = {
-        name: 'test',
-        admissionYear: 21,
-        major: [{ idx: 1 }],
-      };
-
-      // when
-      mockAccountRepository.findAccountByIdx.mockResolvedValue({} as IAccount);
-      mockAccountRepository.findMajorIdx.mockResolvedValue([{ idx: 1 }]);
-      mockAccountRepository.updateAccountInfo.mockResolvedValue(void 0);
-
-      // then
-      await expect(
-        accountService.updateAccountProfile(updateInput, accountIdx),
-      ).resolves.toBeUndefined();
-      expect(mockAccountRepository.updateAccountInfo).toBeCalledWith(updateInput, accountIdx);
-    });
-    it('존재하지 않는 사용자일 경우 NotFoundException이 발생된다', async () => {
-      // given
-      const accountIdx = 1;
-
-      // when
-      mockAccountRepository.findAccountByIdx.mockResolvedValue(undefined);
-
-      // then
-      await expect(
-        accountService.updateAccountProfile({} as IAccount.IUpdateProfileRequest, accountIdx),
-      ).rejects.toBeInstanceOf(NotFoundException);
-    });
-
-    it('존재하지 않는 전공이 포함되어있으면 BadRequestException이 발생된다', async () => {
-      // given
-      const major = [
-        {
-          idx: 1,
-        },
-        {
-          idx: 13333,
-        },
-      ];
-
-      // when
-      mockAccountRepository.findMajorIdx.mockResolvedValue([]);
-
-      // then
-      await expect(accountService.updateAccountProfile({ major }, 1)).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
-    });
+  describe('destorySession', () => {
+    it.todo('레디스에 세션 정보 삭제 (로그인 세션 삭제)');
   });
 });
