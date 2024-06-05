@@ -25,7 +25,7 @@ export class AuthService {
     // 이메일로 계정 찾기
     const foundAccount = await this.accountRepository.findAccountByEmail(loginInput.email);
     if (!foundAccount) {
-      throw new BadRequestException('이메일 또는 비밀번호가 일치하지 않습니다(이메일)');
+      throw new BadRequestException('이메일 또는 비밀번호가 일치하지 않습dd니다(이메일)');
     }
 
     // 비밀번호 확인
@@ -41,23 +41,21 @@ export class AuthService {
   }
 
   /**
-   * 토큰 생성 후 로그인 세션 저장
+   * 토큰 생성
    * @param payload 토큰 페이로드에 사용될 유저 정보
    */
-  async createSession(payload: Pick<IJwtPayload, 'idx' | 'email'>): Promise<string> {
+  async createToken(payload: Pick<IJwtPayload, 'idx' | 'email'>): Promise<string> {
     const token = TokenManager.generate({ ...payload, loggedInAt: new Date() });
-
-    await this.setLoginSession(payload.idx, token);
 
     return token;
   }
 
   /**
-   *
+   * 로그인 세션 저장
    * @param idx 사용자 인덱스
    * @param token 토큰
    */
-  private async setLoginSession(idx: number, token: string): Promise<void> {
+  async setLoginSession(idx: number, token: string): Promise<void> {
     await this.redisService.client.set(`session:${idx}`, token, 'EX', env.LOGIN_TTL);
   }
 
