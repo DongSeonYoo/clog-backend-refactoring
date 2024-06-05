@@ -73,4 +73,25 @@ accountRouter.get(
       return res.send(ResponseEntity.SUCCESS('회원정보 수정 성공'));
     }),
   ),
+
+  /**
+   * @DELETE /account
+   * @Role User
+   * 회원탈퇴
+   */
+  accountRouter.delete(
+    '/',
+    loginAuthGuard(),
+    wrapper(async (req, res, next) => {
+      const accountIdx: IAccount['idx'] = req.user.idx;
+
+      // 회원탈퇴 로직 수행
+      await accountService.deleteAccount(accountIdx);
+
+      // 세션 삭제
+      await authService.destorySession(accountIdx);
+
+      return res.send(ResponseEntity.SUCCESS('회원탈퇴 성공'));
+    }),
+  ),
 );

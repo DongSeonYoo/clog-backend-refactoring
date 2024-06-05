@@ -80,4 +80,20 @@ export class AccountService {
 
     return;
   }
+
+  /**
+   * 사용자 탈퇴
+   * @param accountIdx 사용자 인덱스
+   */
+  async deleteAccount(accountIdx: IAccount['idx']): Promise<void> {
+    const foundAccountResult = await this.accountRepository.findAccountByIdx(accountIdx);
+    if (!foundAccountResult) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+
+    // 사용자 정보 업데이트 (deletedAt = new Date())
+    await this.accountRepository.deleteAccount(accountIdx);
+
+    return;
+  }
 }

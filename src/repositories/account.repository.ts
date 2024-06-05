@@ -146,4 +146,17 @@ export class AccountRepository {
       }
     });
   }
+
+  /**
+   * 사용자 삭제
+   * @param accountIdx 사용자 인덱스
+   */
+  async deleteAccount(accountIdx: IAccount['idx']): Promise<void> {
+    await this.knex('account').update('deletedAt', new Date()).where({
+      idx: accountIdx,
+      deletedAt: null,
+    });
+
+    return;
+  }
 }

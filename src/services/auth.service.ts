@@ -7,6 +7,7 @@ import { IJwtPayload } from '../interfaces/auth/jwt-payload.interface';
 import { TokenManager } from '../utils/token-manager.util';
 import { RedisService } from './redis.service';
 import env from '../config/env.config';
+import { IAccount } from '../interfaces/account/account.interface';
 
 @Service()
 export class AuthService {
@@ -58,5 +59,13 @@ export class AuthService {
    */
   private async setLoginSession(idx: number, token: string): Promise<void> {
     await this.redisService.client.set(`session:${idx}`, token, 'EX', env.LOGIN_TTL);
+  }
+
+  /**
+   * 로그인 세션 삭제
+   * @param idx 사용자 인덱스
+   */
+  async destorySession(accountIdx: IAccount['idx']): Promise<void> {
+    await this.redisService.client.del(`session:${accountIdx}`);
   }
 }
