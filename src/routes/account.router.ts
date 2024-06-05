@@ -8,16 +8,13 @@ import {
   updateAccountProfileBodyValidation,
 } from '../utils/validation/account.validation';
 import { validate } from '../middlewares/validate.middleware';
-import Container from 'typedi';
-import { AccountService } from '../services/account.service';
 import { IAccount } from '../interfaces/account/account.interface';
 import { ResponseEntity } from '../utils/response.util';
 import { wrapper } from '../utils/wrapper.util';
 import { loginAuthGuard } from '../middlewares/login-auth.middleware';
+import { accountService, authService } from '../utils/container.util';
 
 export const accountRouter = Router();
-
-export const accountService = Container.get(AccountService);
 
 /**
  * @POST /account

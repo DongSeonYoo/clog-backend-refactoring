@@ -5,15 +5,12 @@ import {
   passwordBodyValidation,
 } from '../utils/validation/account.validation';
 import { validate } from '../middlewares/validate.middleware';
-import Container from 'typedi';
-import { AuthService } from '../services/auth.service';
 import { IAuth } from '../interfaces/auth/auth.interface';
 import { ResponseEntity } from '../utils/response.util';
 import env from '../config/env.config';
+import { authService } from '../utils/container.util';
 
 export const authRouter = Router();
-export const accountService = Container.get(AuthService);
-export const authService = Container.get(AuthService);
 
 /**
  * @POST /auth/login
@@ -26,7 +23,8 @@ authRouter.post(
   wrapper(async (req, res, next) => {
     const input: IAuth.ILogin = req.body;
 
-    const accountInfo = await accountService.login(input);
+    // 로그인 로직 수행
+    const accountInfo = await authService.login(input);
 
     const token = await authService.createSession(accountInfo);
 
