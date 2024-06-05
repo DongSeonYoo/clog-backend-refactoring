@@ -8,6 +8,22 @@ export class AccountRepository {
   constructor(@Inject('knex') private readonly knex: Knex) {}
 
   /**
+   * 사용자 인덱스로 사용자를 찾는다
+   * @param accountIdx 사용자 인덱스
+   */
+  async findAccountByIdx(accountIdx: IAccount['idx']): Promise<IAccount | undefined> {
+    const account = await this.knex('account')
+      .select('*')
+      .where({
+        idx: accountIdx,
+        deletedAt: null,
+      })
+      .first();
+
+    return account;
+  }
+
+  /**
    * 이메일로 유저를 찾는다
    * @param email 이메일
    * @returns 유저 | null
