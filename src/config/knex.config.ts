@@ -1,8 +1,7 @@
-// src/config/KnexConfig.ts
 import Container from 'typedi';
 import knex, { Knex } from 'knex';
 import env from './env.config';
-import { knexSnakeCaseMappers, snakeCaseMappers } from 'objection';
+import { knexSnakeCaseMappers } from 'objection';
 
 const dbConfig: Knex.Config = {
   client: 'pg',
