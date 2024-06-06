@@ -9,6 +9,7 @@ import { IAuth } from '../interfaces/auth/auth.interface';
 import { ResponseEntity } from '../utils/response.util';
 import env from '../config/env.config';
 import { authService } from '../utils/container.util';
+import { loginAuthGuard } from '../middlewares/login-auth.middleware';
 
 export const authRouter = Router();
 
@@ -40,5 +41,22 @@ authRouter.post(
     });
 
     return res.status(201).send(ResponseEntity.SUCCESS());
+  }),
+);
+
+/**
+ * @POST /auth/logout
+ * @Role loggedIn
+ * 로그 아웃
+ */
+authRouter.post(
+  '/logout',
+  loginAuthGuard(),
+  wrapper(async (req, res, next) => {
+    const accountIdx = req.user.idx;
+
+    await authService.destorySession(accountIdx);
+
+    return res.send(ResponseEntity.SUCCESS('로그아웃 성공요'));
   }),
 );
