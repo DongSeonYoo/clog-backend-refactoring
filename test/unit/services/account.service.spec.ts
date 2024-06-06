@@ -112,7 +112,7 @@ describe('AccountService', () => {
 
       // when
       mockAccountRepository.findAccountByIdx.mockResolvedValue(undefined);
-      accountService.updateAccountProfile({} as IAccount.IUpdateProfileRequest, accountIdx);
+      updateAccountProfileFunc = accountService.updateAccountProfile({}, accountIdx);
 
       // then
       await expect(updateAccountProfileFunc).rejects.toBeInstanceOf(NotFoundException);
