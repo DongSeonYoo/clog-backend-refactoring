@@ -126,6 +126,17 @@ describe('AuthService', () => {
   });
 
   describe('destorySession', () => {
-    it.todo('레디스에 세션 정보 삭제 (로그인 세션 삭제)');
+    it('레디스에 현재 로그인 된 유저의 세션 정보를 삭제한다', async () => {
+      // given
+      const accountIdx = 1;
+
+      // when
+      const mockRedisSpy = jest.spyOn(mockRedisService.client, 'del');
+      await authService.destorySession(accountIdx);
+
+      // then
+      expect(mockRedisSpy).toHaveBeenCalledTimes(1);
+      expect(mockRedisSpy).toHaveBeenCalledWith(`session:${accountIdx}`);
+    });
   });
 });
