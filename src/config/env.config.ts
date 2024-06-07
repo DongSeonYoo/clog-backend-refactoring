@@ -32,7 +32,7 @@ const env = {
 
   // AWS configuration
   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID as string,
-  AWS_SECRET_ACCESS_KEY_ID: process.env.AWS_SECRET_ACCESS_KEY_ID as string,
+  AWS_SECERET_ACCESS_KEY: process.env.AWS_SECERET_ACCESS_KEY as string,
   AWS_S3_BUCKET_NAME: process.env.AWS_BUCKET_NAME as string,
 
   SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME || 'connect.sid',
