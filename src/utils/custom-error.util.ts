@@ -38,3 +38,10 @@ export class ForbiddenException extends CustomError {
     this.statusCode = HttpStatus.FORBIDDEN;
   }
 }
+
+export class InternalServerErrorException extends CustomError {
+  constructor(message: string = 'InternalServerErrorException') {
+    super(message);
+    this.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+}
