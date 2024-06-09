@@ -37,7 +37,7 @@ const s3: S3Client = new S3Client({
 const s3Uploader = (options: { fieldName: IFieldName; maxCount: number }) => {
   const { fieldName, maxCount } = options;
 
-  return wrapper(async (req, res, next) => {
+  return (req, res, next) => {
     multer(getMulterConfig({ fieldName, maxCount })).array(fieldName, maxCount)(
       req,
       res,
@@ -54,7 +54,7 @@ const s3Uploader = (options: { fieldName: IFieldName; maxCount: number }) => {
         return next();
       },
     );
-  });
+  };
 };
 
 const getMulterConfig = (options: { fieldName: string; maxCount: number }): Options => {
