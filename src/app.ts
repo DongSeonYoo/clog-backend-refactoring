@@ -1,10 +1,10 @@
 import 'reflect-metadata';
-import './config/knex.config';
 import express from 'express';
 import { errorHandling } from './middlewares/error.middleware';
 import { accountRouter } from './routes/account.router';
 import { authRouter } from './routes/auth.router';
 import cookieParser from 'cookie-parser';
+import { uploadRouter } from './routes/upload.router';
 
 const app = express();
 
@@ -15,6 +15,7 @@ app.use(express.json());
 // 라우터 등록
 app.use('/account', accountRouter);
 app.use('/auth', authRouter);
+app.use('/upload', uploadRouter);
 
 // 에러 핸들링 미들웨어
 app.use(errorHandling());
