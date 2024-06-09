@@ -63,3 +63,12 @@ export interface IClub {
    */
   deletedAt: Date | null;
 }
+
+export namespace IClub {
+  export interface ICreateClubRequest
+    extends Pick<IClub, 'name' | 'summary' | 'isRecruit' | 'profileImage' | 'bannerImage'> {
+    belong: IClub['belongIdx'];
+    bigCategory: IClub['bigCategoryIdx'];
+    smallCategory: IClub['smallCategoryIdx'];
+  }
+}
