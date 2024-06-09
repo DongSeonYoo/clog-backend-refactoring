@@ -11,3 +11,7 @@ dist/
 *.sql
 
 .idea/
+
+blog/
+
+coverage/
