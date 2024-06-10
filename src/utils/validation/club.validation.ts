@@ -1,22 +1,22 @@
 import { body, ValidationChain } from 'express-validator';
 
 /**
- * @body belong 소속
+ * @body belongIdx 소속 인덱스
  */
-export const belongBodyValidation: ValidationChain = body('belong').notEmpty().isInt().toInt();
+export const belongBodyValidation: ValidationChain = body('belongIdx').notEmpty().isInt().toInt();
 
 /**
- * @body bigCategory 동아리 대분류 인덱스 번호
+ * @body bigCategoryIdx 동아리 대분류 인덱스 번호
  */
-export const bigCategoryBodyValidation: ValidationChain = body('bigCategory')
+export const bigCategoryBodyValidation: ValidationChain = body('bigCategoryIdx')
   .notEmpty()
   .isInt()
   .toInt();
 
 /**
- * @body smallCategory 동아리 소분류 인덱스 번호
+ * @body smallCategoryIdx 동아리 소분류 인덱스 번호
  */
-export const smallCategoryBodyValidation: ValidationChain = body('smallCategory')
+export const smallCategoryBodyValidation: ValidationChain = body('smallCategoryIdx')
   .notEmpty()
   .isInt()
   .toInt();
@@ -27,9 +27,9 @@ export const smallCategoryBodyValidation: ValidationChain = body('smallCategory'
 export const clubNameBodyValidation: ValidationChain = body('name').notEmpty().isString();
 
 /**
- * @body cover 동아리 소개글
+ * @body summary 동아리 소개글
  */
-export const coverBodyValidation: ValidationChain = body('cover').notEmpty().isString();
+export const summaryBodyValidation: ValidationChain = body('summary').notEmpty().isString();
 
 /**
  * @body isRecruit 동아리 가입 신청 받을지 여부(bool)
@@ -39,7 +39,7 @@ export const isRecruitBodyValidation: ValidationChain = body('isRecruit').notEmp
 /**
  * @body profileImg 업로드할 이미지 경로
  */
-export const profileImgBodyValidation: ValidationChain = body('profileImg')
+export const clubProfileImgBodyValidation: ValidationChain = body('profileImg')
   .notEmpty()
   .isString()
   .isURL();
@@ -47,7 +47,7 @@ export const profileImgBodyValidation: ValidationChain = body('profileImg')
 /**
  * @body bannerImg 업로드할 이미지 경로
  */
-export const clubBannerImgValidation: ValidationChain = body('bannerImg')
+export const clubBannerImgBodyValidation: ValidationChain = body('bannerImg')
   .notEmpty()
   .isString()
   .isURL();
