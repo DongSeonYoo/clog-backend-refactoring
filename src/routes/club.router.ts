@@ -53,6 +53,7 @@ clubRouter.post(
    */
   clubRouter.get(
     '/duplicate/name/:clubName',
+    validate([clubNameBodyValidation]),
     loginAuthGuard(),
     wrapper(async (req, res, next) => {
       const clubName: IClub['name'] = req.params.clubName;
