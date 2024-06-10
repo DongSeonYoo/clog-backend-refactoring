@@ -2,7 +2,7 @@ import { MockProxy, mock } from 'jest-mock-extended';
 import { ClubService } from '../../../src/services/club.service';
 import { ClubRepository } from '../../../src/repositories/club.repository';
 import { IClub } from '../../../src/interfaces/club/club.interface';
-import { BadRequestException } from '../../../src/utils/custom-error.util';
+import { BadRequestException, NotFoundException } from '../../../src/utils/custom-error.util';
 import { IPosition } from '../../../src/interfaces/club/club.enum';
 
 describe('clubService', () => {
@@ -105,5 +105,31 @@ describe('clubService', () => {
       // then
       expect(checkBigCategoryFunc).rejects.toBeInstanceOf(BadRequestException);
     });
+  });
+
+  describe('checkDuplicateName', () => {
+    it('중복된 동아리 이름이 존재하면 BadRequestException을 던진다', async () => {
+      // given
+      const existsClubName = 'club1';
+      mockClubRepository.checkDuplicateName.mockResolvedValue(existsClubName);
+
+      // when
+      const checkDuplicateNameFunc = clubService.checkDuplicateName(existsClubName);
+
+      // then
+      expect(checkDuplicateNameFunc).rejects.toBeInstanceOf(BadRequestException);
+    });
+  });
+
+  it('중복된 동아리 이름이 존재하지 않으면 void를 반환한다', async () => {
+    // given
+    const notExistsClubName = 'club1';
+    mockClubRepository.checkDuplicateName.mockResolvedValue(undefined);
+
+    // when
+    const checkDuplicateNameFunc = clubService.checkDuplicateName(notExistsClubName);
+
+    // then
+    expect(checkDuplicateNameFunc).resolves.toBeUndefined();
   });
 });
