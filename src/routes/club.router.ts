@@ -4,15 +4,18 @@ import { validate } from '../middlewares/validate.middleware';
 import {
   belongBodyValidation,
   bigCategoryBodyValidation,
-  clubBannerImgValidation,
+  clubBannerImgBodyValidation,
   clubNameBodyValidation,
-  coverBodyValidation,
+  summaryBodyValidation,
   isRecruitBodyValidation,
-  profileImgBodyValidation,
+  clubProfileImgBodyValidation,
   smallCategoryBodyValidation,
 } from '../utils/validation/club.validation';
 import { clubService } from '../utils/container.util';
 import { IClub } from '../interfaces/club/club.interface';
+import { IAccount } from '../interfaces/account/account.interface';
+import { ResponseEntity } from '../utils/response.util';
+import { wrapper } from '../utils/wrapper.util';
 
 export const clubRouter = Router();
 
@@ -29,14 +32,17 @@ clubRouter.post(
     bigCategoryBodyValidation,
     smallCategoryBodyValidation,
     clubNameBodyValidation,
-    coverBodyValidation,
+    summaryBodyValidation,
     isRecruitBodyValidation,
-    profileImgBodyValidation,
-    clubBannerImgValidation,
+    clubProfileImgBodyValidation,
+    clubBannerImgBodyValidation,
   ]),
-  async (req, res, next) => {
+  wrapper(async (req, res, next) => {
+    const accountIdx: IAccount['idx'] = req.user.idx;
     const createClubInput: IClub.ICreateClubRequest = req.body;
 
-    await clubService.createClub(createClubInput);
-  },
+    const createdClubIdx = await clubService.createClub(createClubInput, accountIdx);
+
+    return res.send(ResponseEntity.SUCCESS_WITH(createdClubIdx));
+  }),
 );
