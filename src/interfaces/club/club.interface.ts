@@ -85,4 +85,17 @@ export namespace IClub {
     clubIdx: IClub['idx'];
     position: IPosition;
   }
+
+  export interface IClubProfile
+    extends Pick<
+      IClub,
+      'name' | 'profileImage' | 'bannerImage' | 'summary' | 'isRecruit' | 'createdAt'
+    > {
+    belong: IBelong['name'];
+    bigCategory: IBigCategory['name'];
+    smallCategory: ISmallCategory['name'];
+    memberCount: number;
+    isMember: boolean;
+    position: IPosition;
+  }
 }
