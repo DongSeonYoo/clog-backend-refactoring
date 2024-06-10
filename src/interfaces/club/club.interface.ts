@@ -1,5 +1,7 @@
+import { IAccount } from '../account/account.interface';
 import { IBelong } from './belong.interface';
 import { IBigCategory } from './big-category.interface';
+import { IPosition } from './club.enum';
 import { ISmallCategory } from './small-category.interface';
 
 export interface IClub {
@@ -66,9 +68,21 @@ export interface IClub {
 
 export namespace IClub {
   export interface ICreateClubRequest
-    extends Pick<IClub, 'name' | 'summary' | 'isRecruit' | 'profileImage' | 'bannerImage'> {
-    belong: IClub['belongIdx'];
-    bigCategory: IClub['bigCategoryIdx'];
-    smallCategory: IClub['smallCategoryIdx'];
+    extends Pick<
+      IClub,
+      | 'belongIdx'
+      | 'bigCategoryIdx'
+      | 'smallCategoryIdx'
+      | 'name'
+      | 'summary'
+      | 'isRecruit'
+      | 'profileImage'
+      | 'bannerImage'
+    > {}
+
+  export interface ICreateClubMember {
+    accountIdx: IAccount['idx'];
+    clubIdx: IClub['idx'];
+    position: IPosition;
   }
 }
