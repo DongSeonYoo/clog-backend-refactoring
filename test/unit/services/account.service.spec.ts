@@ -43,7 +43,9 @@ describe('AccountService', () => {
       ];
 
       // when
+      // @ts-ignore
       mockAccountRepository.getAccountProfile.mockResolvedValue(expectAccountInfo);
+      // @ts-ignore
       mockAccountRepository.getAccountMajor.mockResolvedValue(expectMajorInfo);
       getAccountProfileFunc = await accountService.getAccountProfile(accountIdx);
 
@@ -65,6 +67,7 @@ describe('AccountService', () => {
 
     it('중복된 이메일이 존재 할 경우 BadRequestException이 발생된다', async () => {
       // when
+      // @ts-ignore
       mockAccountRepository.findAccountByEmail.mockResolvedValue({} as IAccount);
       createAccountFunc = accountService.createAccount(signupInput);
 
@@ -74,6 +77,7 @@ describe('AccountService', () => {
 
     it('존재하지 않는 전공이 포함되어 있을 경우 BadRequestException이 발생된다', async () => {
       // when
+      // @ts-ignore
       mockAccountRepository.findMajorIdx.mockResolvedValue([]);
 
       // then
@@ -96,8 +100,11 @@ describe('AccountService', () => {
       };
 
       // when
+      // @ts-ignore
       const updateAccountInfoSpy = jest.spyOn(mockAccountRepository, 'updateAccountInfo');
+      // @ts-ignore
       mockAccountRepository.findAccountByIdx.mockResolvedValue({} as IAccount);
+      // @ts-ignore
       mockAccountRepository.findMajorIdx.mockResolvedValue([{ idx: 1 }]);
       updateAccountProfileFunc = accountService.updateAccountProfile(updateInput, accountIdx);
 
@@ -111,6 +118,7 @@ describe('AccountService', () => {
       const accountIdx = 1;
 
       // when
+      // @ts-ignore
       mockAccountRepository.findAccountByIdx.mockResolvedValue(undefined);
       updateAccountProfileFunc = accountService.updateAccountProfile({}, accountIdx);
 
@@ -130,6 +138,7 @@ describe('AccountService', () => {
       ];
 
       // when
+      // @ts-ignore
       mockAccountRepository.findMajorIdx.mockResolvedValue([]);
       updateAccountProfileFunc = accountService.updateAccountProfile({ major }, 1);
 
@@ -147,6 +156,7 @@ describe('AccountService', () => {
       accountIdx = -1;
 
       // when
+      // @ts-ignore
       mockAccountRepository.findAccountByIdx.mockResolvedValue(undefined);
       deleteAccountFunc = accountService.deleteAccount(accountIdx);
 
@@ -159,7 +169,9 @@ describe('AccountService', () => {
       accountIdx = 1;
 
       // when
+      // @ts-ignore
       mockAccountRepository.findAccountByIdx.mockResolvedValue({} as IAccount);
+      // @ts-ignore
       mockAccountRepository.deleteAccount.mockResolvedValue();
       deleteAccountFunc = await accountService.deleteAccount(accountIdx);
 

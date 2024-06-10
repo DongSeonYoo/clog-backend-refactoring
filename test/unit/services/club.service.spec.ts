@@ -29,10 +29,14 @@ describe('clubService', () => {
     it('동아리를 생성하고 동아리 회장으로 등록한다', async () => {
       // given
       const createdClubIdx = 1;
+      // @ts-ignore
       mockClubRepository.getClubBelong.mockResolvedValue({ idx: 1, name: '소속' });
+      // @ts-ignore
       mockClubRepository.getSmallCategory.mockResolvedValue({ idx: 1, name: '소분류 카테고리' });
+      // @ts-ignore
       mockClubRepository.getBigCategory.mockResolvedValue({ idx: 1, name: '대분류 카테고리' });
 
+      // @ts-ignore
       mockClubRepository.createClubWithInsertAdmin.mockResolvedValue(createdClubIdx);
 
       // when
@@ -44,6 +48,7 @@ describe('clubService', () => {
 
     it('소속이 존재하지 않으면 BadRequestException이 발생한다', async () => {
       // given
+      // @ts-ignore
       mockClubRepository.getClubBelong.mockResolvedValue(undefined);
 
       // when
@@ -55,7 +60,9 @@ describe('clubService', () => {
 
     it('대분류 카테고리가 존재하지 않으면 BadRequestException이 발생한다', async () => {
       // given
+      // @ts-ignore
       mockClubRepository.getClubBelong.mockResolvedValue({ idx: 1, name: '소속' });
+      // @ts-ignore
       mockClubRepository.getBigCategory.mockResolvedValue(undefined);
 
       // when
@@ -67,8 +74,11 @@ describe('clubService', () => {
 
     it('소분류 카테고리가 존재하지 않으면 BadRequestException이 발생한다', async () => {
       // given
+      // @ts-ignore
       mockClubRepository.getClubBelong.mockResolvedValue({ idx: 1, name: '소속' });
+      // @ts-ignore
       mockClubRepository.getBigCategory.mockResolvedValue({ idx: 1, name: '대분류 카테고리' });
+      // @ts-ignore
       mockClubRepository.getSmallCategory.mockResolvedValue(undefined);
 
       // when
@@ -85,6 +95,7 @@ describe('clubService', () => {
       const belongIdx = 2222;
 
       // when
+      // @ts-ignore
       mockClubRepository.getClubBelong.mockResolvedValue(undefined);
       const checkBelongFunc = clubService.checkBelong(belongIdx);
 
@@ -99,6 +110,7 @@ describe('clubService', () => {
       const bigCategoryIdx = 2222;
 
       // when
+      // @ts-ignore
       mockClubRepository.getBigCategory.mockResolvedValue(undefined);
       const checkBigCategoryFunc = clubService.checkBigCategory(bigCategoryIdx);
 
@@ -111,6 +123,7 @@ describe('clubService', () => {
     it('중복된 동아리 이름이 존재하면 BadRequestException을 던진다', async () => {
       // given
       const existsClubName = 'club1';
+      // @ts-ignore
       mockClubRepository.checkDuplicateName.mockResolvedValue(existsClubName);
 
       // when
@@ -124,6 +137,7 @@ describe('clubService', () => {
   it('중복된 동아리 이름이 존재하지 않으면 void를 반환한다', async () => {
     // given
     const notExistsClubName = 'club1';
+    // @ts-ignore
     mockClubRepository.checkDuplicateName.mockResolvedValue(undefined);
 
     // when

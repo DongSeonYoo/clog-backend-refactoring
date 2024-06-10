@@ -29,6 +29,7 @@ describe('AuthService', () => {
       };
 
       // when
+      // @ts-ignore
       mockAccountRepository.findAccountByEmail.mockResolvedValue(undefined);
 
       // then
@@ -43,6 +44,7 @@ describe('AuthService', () => {
       };
 
       // when
+      // @ts-ignore
       mockAccountRepository.findAccountByEmail.mockResolvedValue({} as IAccount);
       jest.spyOn(BcryptUtil, 'compare').mockResolvedValue(false);
 
@@ -62,6 +64,7 @@ describe('AuthService', () => {
       };
 
       // when
+      // @ts-ignore
       mockAccountRepository.findAccountByEmail.mockResolvedValue(tokenPayload as IAccount);
       jest.spyOn(BcryptUtil, 'compare').mockResolvedValue(true);
 

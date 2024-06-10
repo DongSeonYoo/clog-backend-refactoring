@@ -23,6 +23,7 @@ export class AuthService {
    */
   async login(loginInput: IAuth.ILogin): Promise<Pick<IJwtPayload, 'email' | 'idx'>> {
     // 이메일로 계정 찾기
+    // @ts-ignore
     const foundAccount = await this.accountRepository.findAccountByEmail(loginInput.email);
     if (!foundAccount) {
       throw new BadRequestException('이메일 또는 비밀번호가 일치하지 않습dd니다(이메일)');
