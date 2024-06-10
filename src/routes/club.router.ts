@@ -45,4 +45,21 @@ clubRouter.post(
 
     return res.send(ResponseEntity.SUCCESS_WITH(createdClubIdx));
   }),
+
+  /**
+   * GET /club/duplicate/name/:clubName
+   * @Role User
+   * 동아리 이름 중복 확인
+   */
+  clubRouter.get(
+    '/duplicate/name/:clubName',
+    loginAuthGuard(),
+    wrapper(async (req, res, next) => {
+      const clubName: IClub['name'] = req.params.clubName;
+
+      await clubService.checkDuplicateName(clubName);
+
+      return res.send(ResponseEntity.SUCCESS_WITH('사용 가능한 이름입니다'));
+    }),
+  ),
 );

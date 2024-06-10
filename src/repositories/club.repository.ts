@@ -84,4 +84,15 @@ export class ClubRepository {
 
     return smallCategory;
   }
+
+  /**
+   * 동아리 이름 중복 확인
+   * @param name 동아리 이름
+   * @returns 결과
+   */
+  async checkDuplicateName(name: IClub['name']): Promise<string | undefined> {
+    const foundClub = await this.knex('club').select('name').where('name', name).first();
+
+    return foundClub?.name;
+  }
 }

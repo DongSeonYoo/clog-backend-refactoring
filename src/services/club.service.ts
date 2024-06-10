@@ -60,4 +60,16 @@ export class ClubService {
       throw new BadRequestException('해당하는 소분류 인덱스가 존재하지 않습니다');
     }
   }
+
+  /**
+   * 동아리 이름 중복 확인
+   * @param clubName 동아리 이름
+   * @returns 중복 여부
+   */
+  async checkDuplicateName(clubName: IClub['name']): Promise<void> {
+    const findClubName = await this.clubRepository.checkDuplicateName(clubName);
+    if (findClubName) {
+      throw new BadRequestException('이미 사용중인 동아리 이름입니다');
+    }
+  }
 }
