@@ -6,7 +6,7 @@ export interface IClubMember {
   /**
    * 동아리 유저 인덱스
    */
-  idx: IAccount['idx'];
+  accountIdx: IAccount['idx'];
 
   /**
    * 동아리 인덱스
