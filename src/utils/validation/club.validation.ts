@@ -1,4 +1,4 @@
-import { body, ValidationChain } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 
 /**
  * @body belongIdx 소속 인덱스
@@ -51,3 +51,8 @@ export const clubBannerImgBodyValidation: ValidationChain = body('bannerImg')
   .notEmpty()
   .isString()
   .isURL();
+
+/**
+ * @params clubIdx 동아리 인덱스
+ */
+export const clubIdxParamValidation: ValidationChain = param('clubIdx').notEmpty().isInt().toInt();

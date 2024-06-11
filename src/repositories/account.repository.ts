@@ -1,161 +1,178 @@
-import { Knex } from 'knex';
+import { Kysely, sql } from 'kysely';
+import { DB } from 'kysely-codegen';
 import { Inject, Service } from 'typedi';
 import { IAccount } from '../interfaces/account/account.interface';
 import { IMajor } from '../interfaces/club/major.interface';
 
 @Service()
 export class AccountRepository {
-  constructor(@Inject('knex') private readonly knex: Knex) {}
+  constructor(@Inject('kysely') private readonly kysely: Kysely<DB>) {}
 
   /**
-   * 사용자 인덱스로 사용자를 찾는다
-   * @param accountIdx 사용자 인덱스
-   */
-  async findAccountByIdx(accountIdx: IAccount['idx']): Promise<IAccount | undefined> {
-    const account = await this.knex('account')
-      .select('*')
-      .where({
-        idx: accountIdx,
-        deletedAt: null,
-      })
-      .first();
-
-    return account;
-  }
-
-  /**
-   * 이메일로 유저를 찾는다
+   * 이메일로 계정 찾기
    * @param email 이메일
-   * @returns 유저 | null
+   * @returns 계정 정보
    */
   async findAccountByEmail(email: IAccount['email']): Promise<IAccount | undefined> {
-    const result = await this.knex('account')
-      .select('*')
-      .where({
-        email,
-        deletedAt: null,
-      })
-      .first();
+    const accountResult = await this.kysely
+      .selectFrom('account')
+      .selectAll()
+      .where('account.email', '=', email)
+      .where('account.deletedAt', 'is', null)
+      .executeTakeFirst();
 
-    return result;
-  }
-
-  /**
-   * 전공 인덱스를 받아 해당하는 전공이 존재하는지 확인
-   * @param majorArr[] 전공 인덱스 배열
-   * @returns 찾은 전공 인덱스 배열
-   */
-  async findMajorIdx(majorArr: Pick<IMajor, 'idx'>[]): Promise<Pick<IAccount, 'idx'>[]> {
-    const foundMajorArr = await this.knex('major')
-      .select('idx')
-      .whereIn(
-        'idx',
-        majorArr.map((major) => major.idx),
-      );
-
-    return foundMajorArr;
-  }
-
-  /**
-   * 회원가입 정보를 받아 사용자를 생성한다
-   * @param signupInput 회원가입 정보
-   * @returns 생성된 사용자 인덱스
-   */
-  async createAccount(signupInput: IAccount.ICreateAccount): Promise<IAccount['idx']> {
-    const accountIdx = await this.knex.transaction(async (tx) => {
-      const [createAccount] = await tx('account')
-        .insert({
-          name: signupInput.name,
-          email: signupInput.email,
-          password: signupInput.password,
-          admissionYear: signupInput.admissionYear,
-          personalColor: signupInput.personalColor,
-        })
-        .returning('idx');
-
-      // 사용자는 여러 개의 전공을 가질 수 있음
-      await tx('accountMajor').insert(
-        signupInput.major.map((major) => ({
-          accountIdx: createAccount.idx,
-          majorIdx: major.idx,
-        })),
-      );
-
-      return createAccount.idx;
-    });
-
-    return accountIdx;
+    return accountResult;
   }
 
   /**
    * 사용자 프로필 조회
    * @param accountIdx 사용자 인덱스
+   * @returns 사용자 프로필 정보
    */
   async getAccountProfile(
     accountIdx: IAccount['idx'],
-  ): Promise<Pick<IAccount, 'name' | 'personalColor' | 'admissionYear' | 'createdAt'>> {
-    const [accountProfileInfo] = await this.knex('account')
-      .select('name', 'personalColor', 'admissionYear', 'createdAt')
-      .where('idx', accountIdx)
-      .andWhere('deletedAt', null);
+  ): Promise<IAccount.IAccountProfileResponse | undefined> {
+    const profileResult = await this.kysely
+      .selectFrom('accountMajor')
+      .innerJoin('account', 'accountMajor.accountIdx', 'account.idx')
+      .innerJoin('major', 'accountMajor.majorIdx', 'major.idx')
+      .select([
+        'account.name',
+        'account.personalColor',
+        'account.admissionYear',
+        'account.createdAt',
+        sql<string[]>`array_agg(major.name)`.as('majors'),
+      ])
+      .groupBy([
+        'account.name',
+        'account.personalColor',
+        'account.admissionYear',
+        'account.createdAt',
+      ])
+      .where('accountMajor.accountIdx', '=', accountIdx)
+      .executeTakeFirst();
 
-    return accountProfileInfo;
+    return profileResult;
   }
 
   /**
-   * 사용자의 전공 정보 조회
-   * @param accountIdx 사용자 인덱스
+   * 전공 인덱스 확인
+   * @param majorIdxList 전공 인덱스 리스트
+   * @returns 존재하는 전공 인덱스 리스트
    */
-  async getAccountMajor(accountIdx: IAccount['idx']): Promise<Pick<IMajor, 'name'>[]> {
-    const accountMajorList: Pick<IMajor, 'name'>[] = await this.knex('accountMajor')
-      .select('major.name')
-      .join('major', 'accountMajor.majorIdx', 'major.idx')
-      .where('accountIdx', accountIdx);
+  async checkMajorList(majorIdxList: IMajor['idx'][]): Promise<IMajor['idx'][]> {
+    const majorList = await this.kysely
+      .selectFrom('major')
+      .select('idx')
+      .where('idx', 'in', majorIdxList)
+      .execute();
 
-    return accountMajorList.map((major) => ({
-      name: major.name,
-    }));
+    return majorList.map((e) => e.idx);
   }
 
   /**
-   * 사용자 프로필 수정
-   * @param accountInput 사용자 프로필 수정 정보
-   * @param accountIdx 수정할 사용자 인덱스
+   * 사용자 생성
+   * @param accountInput 사용자 생성 정보
+   * @returns 사용자 인덱스
+   */
+  async createAccount(accountInput: IAccount.ICreateAccount): Promise<IAccount['idx']> {
+    const createAccountTx = await this.kysely.transaction().execute(async (tx) => {
+      const createUser = await tx
+        .insertInto('account')
+        .values({
+          name: accountInput.name,
+          admissionYear: accountInput.admissionYear,
+          email: accountInput.email,
+          password: accountInput.password,
+          personalColor: accountInput.personalColor,
+        })
+        .returning('account.idx')
+        .executeTakeFirstOrThrow();
+
+      await tx
+        .insertInto('accountMajor')
+        .values(
+          accountInput.major.map((e) => ({
+            accountIdx: createUser.idx,
+            majorIdx: e.idx,
+          })),
+        )
+        .execute();
+
+      return createUser;
+    });
+
+    return createAccountTx.idx;
+  }
+
+  /**
+   * 사용자 인덱스로 계정 찾기
+   * @param accountIdx 계정 인덱스
+   * @returns 계정 정보
+   */
+  async findAccountByIdx(accountIdx: IAccount['idx']): Promise<IAccount | undefined> {
+    const accountResult = await this.kysely
+      .selectFrom('account')
+      .selectAll()
+      .where('idx', '=', accountIdx)
+      .where('account.deletedAt', 'is', null)
+      .executeTakeFirst();
+
+    return accountResult;
+  }
+
+  /**
+   * 사용자 정보 수정
+   * @param input 수정 정보
+   * @param accountIdx 사용자 인덱스
    */
   async updateAccountInfo(
-    accountInput: IAccount.IUpdateProfileRequest,
+    input: IAccount.IUpdateProfileRequest,
     accountIdx: IAccount['idx'],
-  ) {
-    await this.knex.transaction(async (tx) => {
-      const { major, ...accountDetails } = accountInput;
+  ): Promise<void> {
+    await this.kysely.transaction().execute(async (tx) => {
+      await tx
+        .updateTable('account')
+        .set({
+          name: input.name,
+          admissionYear: input.admissionYear,
+        })
+        .where('idx', '=', accountIdx)
+        .where('deletedAt', 'is', null)
+        .execute();
 
-      // account 테이블 업데이트
-      await tx('account').update(accountDetails).where('idx', accountIdx);
+      if (input.major) {
+        await tx.deleteFrom('accountMajor').where('accountIdx', '=', accountIdx).execute();
 
-      if (accountInput.major) {
-        // 기존 accountMajor 레코드 삭제
-        await tx('accountMajor').where('accountIdx', accountIdx).del();
-
-        // accountMajor 테이블 업데이트
-        await tx('accountMajor').insert(
-          accountInput.major.map((major) => ({
-            accountIdx,
-            majorIdx: major.idx,
-          })),
-        );
+        await tx
+          .insertInto('accountMajor')
+          .values(
+            input.major.map((e) => ({
+              accountIdx,
+              majorIdx: e.idx,
+            })),
+          )
+          .execute();
       }
     });
+
+    return;
   }
 
   /**
-   * 사용자 삭제
+   * 사용자 탈퇴
    * @param accountIdx 사용자 인덱스
+   * @returns 사용자 정보
    */
   async deleteAccount(accountIdx: IAccount['idx']): Promise<void> {
-    await this.knex('account').update('deletedAt', new Date()).where({
-      idx: accountIdx,
-      deletedAt: null,
-    });
+    await this.kysely
+      .updateTable('account')
+      .set({
+        deletedAt: new Date(),
+      })
+      .where('idx', '=', accountIdx)
+      .where('deletedAt', 'is', null)
+      .execute();
 
     return;
   }

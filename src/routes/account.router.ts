@@ -54,26 +54,26 @@ accountRouter.get(
 
     return res.send(ResponseEntity.SUCCESS_WITH(accountProfile));
   }),
+);
 
-  /**
-   * @PATCH /account
-   * @Role User
-   * 회원정보 수정
-   */
-  accountRouter.patch(
-    '/',
-    loginAuthGuard(),
-    validate([...updateAccountProfileBodyValidation]),
-    wrapper(async (req, res, next) => {
-      const accountIdx: IAccount['idx'] = req.user.idx;
-      const updateAccountInput: IAccount.IUpdateProfileRequest = req.body;
+/**
+ * @PATCH /account
+ * @Role User
+ * 회원정보 수정
+ */
+accountRouter.patch(
+  '/',
+  loginAuthGuard(),
+  validate([...updateAccountProfileBodyValidation]),
+  wrapper(async (req, res, next) => {
+    const accountIdx: IAccount['idx'] = req.user.idx;
+    const updateAccountInput: IAccount.IUpdateProfileRequest = req.body;
 
-      await accountService.updateAccountProfile(updateAccountInput, accountIdx);
+    await accountService.updateAccountProfile(updateAccountInput, accountIdx);
 
-      return res.send(ResponseEntity.SUCCESS('회원정보 수정 성공'));
-    }),
-  ),
-
+    return res.send(ResponseEntity.SUCCESS('회원정보 수정 성공'));
+  }),
+),
   /**
    * @DELETE /account
    * @Role User
@@ -93,5 +93,4 @@ accountRouter.get(
 
       return res.send(ResponseEntity.SUCCESS('회원탈퇴 성공'));
     }),
-  ),
-);
+  );

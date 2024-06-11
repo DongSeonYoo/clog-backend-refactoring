@@ -3,6 +3,7 @@ import { IAccount } from '../../../src/interfaces/account/account.interface';
 import { AccountRepository } from '../../../src/repositories/account.repository';
 import { AccountService } from '../../../src/services/account.service';
 import { BadRequestException, NotFoundException } from '../../../src/utils/custom-error.util';
+import { IMajor } from '../../../src/interfaces/club/major.interface';
 
 describe('AccountService', () => {
   let accountService: AccountService;
@@ -24,31 +25,29 @@ describe('AccountService', () => {
         admissionYear: 21,
         personalColor: '#ffffff',
         createdAt: new Date(),
-        major: [
-          {
-            name: '컴퓨터공학',
-          },
-        ],
+        majors: ['컴퓨터공학', '소프트웨어학'],
       };
-      const expectAccountInfo = {
-        name: 'test',
-        admissionYear: 21,
-        personalColor: '#ffffff',
-        createdAt: new Date(),
-      };
-      const expectMajorInfo = [
-        {
-          name: '컴퓨터공학',
-        },
-      ];
 
       // when
-      mockAccountRepository.getAccountProfile.mockResolvedValue(expectAccountInfo);
-      mockAccountRepository.getAccountMajor.mockResolvedValue(expectMajorInfo);
-      getAccountProfileFunc = await accountService.getAccountProfile(accountIdx);
+      mockAccountRepository.getAccountProfile.mockResolvedValue({
+        ...expectedResult,
+      });
+      getAccountProfileFunc = accountService.getAccountProfile(accountIdx);
 
       // then
-      expect(getAccountProfileFunc).toStrictEqual(expectedResult);
+      await expect(getAccountProfileFunc).resolves.toEqual(expectedResult);
+    });
+
+    it('사용자가 존재하지 않을 경우 NotFoundException이 발생된다', async () => {
+      // given
+      const accountIdx = 1;
+
+      // when
+      mockAccountRepository.getAccountProfile.mockResolvedValue(undefined);
+      getAccountProfileFunc = accountService.getAccountProfile(accountIdx);
+
+      // then
+      await expect(getAccountProfileFunc).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
@@ -58,7 +57,7 @@ describe('AccountService', () => {
       email: 'test@google.com',
       password: 'test',
       name: 'test',
-      major: [{ idx: 1 }],
+      major: [{ idx: 1 }, { idx: 2 }],
       admissionYear: 21,
     };
     let createAccountFunc;
@@ -74,7 +73,7 @@ describe('AccountService', () => {
 
     it('존재하지 않는 전공이 포함되어 있을 경우 BadRequestException이 발생된다', async () => {
       // when
-      mockAccountRepository.findMajorIdx.mockResolvedValue([]);
+      mockAccountRepository.checkMajorList.mockResolvedValue([]);
 
       // then
       await expect(accountService.createAccount(signupInput)).rejects.toBeInstanceOf(
@@ -98,7 +97,7 @@ describe('AccountService', () => {
       // when
       const updateAccountInfoSpy = jest.spyOn(mockAccountRepository, 'updateAccountInfo');
       mockAccountRepository.findAccountByIdx.mockResolvedValue({} as IAccount);
-      mockAccountRepository.findMajorIdx.mockResolvedValue([{ idx: 1 }]);
+      mockAccountRepository.checkMajorList.mockResolvedValue([{} as IMajor['idx']]);
       updateAccountProfileFunc = accountService.updateAccountProfile(updateInput, accountIdx);
 
       // then
@@ -130,6 +129,7 @@ describe('AccountService', () => {
       ];
 
       // when
+      // @ts-ignore
       mockAccountRepository.findMajorIdx.mockResolvedValue([]);
       updateAccountProfileFunc = accountService.updateAccountProfile({ major }, 1);
 

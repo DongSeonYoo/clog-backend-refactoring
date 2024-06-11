@@ -23,9 +23,15 @@ export class ClubService {
       this.checkBelong(input.belongIdx),
       this.checkBigCategory(input.bigCategoryIdx),
       this.checkSmallCategory(input.smallCategoryIdx),
+      this.checkDuplicateName(input.name),
     ]);
 
-    return this.clubRepository.createClubWithInsertAdmin(input, accountIdx);
+    const createdAccountIdx = await this.clubRepository.createClubWithInsertAdmin(
+      input,
+      accountIdx,
+    );
+
+    return createdAccountIdx;
   }
 
   /**
@@ -33,7 +39,7 @@ export class ClubService {
    * @param belongIdx 소속 인덱스
    */
   async checkBelong(belongIdx: IBelong['idx']) {
-    const checkBelongIdx = await this.clubRepository.getClubBelong(belongIdx);
+    const checkBelongIdx = await this.clubRepository.getBelongByIdx(belongIdx);
     if (!checkBelongIdx) {
       throw new BadRequestException('해당하는 소속 인덱스가 존재하지 않습니다');
     }
@@ -44,7 +50,7 @@ export class ClubService {
    * @param bigCategoryIdx 대분류 인덱스
    */
   async checkBigCategory(bigCategoryIdx: IBigCategory['idx']) {
-    const checkBigCategoryIdx = await this.clubRepository.getBigCategory(bigCategoryIdx);
+    const checkBigCategoryIdx = await this.clubRepository.getBigCategoryByIdx(bigCategoryIdx);
     if (!checkBigCategoryIdx) {
       throw new BadRequestException('해당하는 대분류 인덱스가 존재하지 않습니다');
     }
@@ -55,7 +61,7 @@ export class ClubService {
    * @param smallCategoryIdx 소분류 인덱스
    */
   async checkSmallCategory(smallCategoryIdx: ISmallCategory['idx']) {
-    const checkSmallCategoryIdx = await this.clubRepository.getSmallCategory(smallCategoryIdx);
+    const checkSmallCategoryIdx = await this.clubRepository.getSmallCategoryByIdx(smallCategoryIdx);
     if (!checkSmallCategoryIdx) {
       throw new BadRequestException('해당하는 소분류 인덱스가 존재하지 않습니다');
     }
@@ -67,9 +73,11 @@ export class ClubService {
    * @returns 중복 여부
    */
   async checkDuplicateName(clubName: IClub['name']): Promise<void> {
-    const findClubName = await this.clubRepository.checkDuplicateName(clubName);
+    const findClubName = await this.clubRepository.checkDuplicateClubName(clubName);
     if (findClubName) {
       throw new BadRequestException('이미 사용중인 동아리 이름입니다');
     }
+
+    return;
   }
 }

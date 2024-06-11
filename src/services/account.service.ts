@@ -19,7 +19,7 @@ export class AccountService {
     }
 
     // 2. 전공 인덱스 확인
-    const result = await this.accountRepository.findMajorIdx(input.major);
+    const result = await this.accountRepository.checkMajorList(input.major.map((e) => e.idx));
     if (result.length !== input.major.length) {
       throw new BadRequestException('존재하지 않는 전공이 포함되어 있습니다.');
     }
@@ -30,6 +30,7 @@ export class AccountService {
     // 4. personalColor 생성
     const personalColor = generateRandomColorCode();
 
+    // 5. 회원 생성
     const accountIdx = await this.accountRepository.createAccount({
       ...input,
       password: hashedPassword,
@@ -46,12 +47,18 @@ export class AccountService {
    * @param accountIdx 사용자 인덱스
    */
   async getAccountProfile(accountIdx: IAccount['idx']): Promise<IAccount.IAccountProfileResponse> {
-    const majorList = await this.accountRepository.getAccountMajor(accountIdx);
     const profile = await this.accountRepository.getAccountProfile(accountIdx);
 
+    if (!profile) {
+      throw new NotFoundException('해당하는 사용자가 존재하지 않습니다.');
+    }
+
     return {
-      ...profile,
-      major: majorList,
+      name: profile.name,
+      admissionYear: profile.admissionYear,
+      personalColor: profile.personalColor,
+      majors: profile.majors,
+      createdAt: profile.createdAt,
     };
   }
 
@@ -70,7 +77,9 @@ export class AccountService {
     }
 
     if (input.major) {
-      const findMajorList = await this.accountRepository.findMajorIdx(input.major);
+      const findMajorList = await this.accountRepository.checkMajorList(
+        input.major.map((e) => e.idx),
+      );
       if (findMajorList.length !== input.major.length) {
         throw new BadRequestException('존재하지 않는 전공이 포함되어 있습니다.');
       }

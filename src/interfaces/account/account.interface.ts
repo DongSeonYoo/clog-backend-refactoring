@@ -55,7 +55,7 @@ export namespace IAccount {
 
   export interface IAccountProfileResponse
     extends Pick<IAccount, 'name' | 'personalColor' | 'admissionYear' | 'createdAt'> {
-    major: Pick<IMajor, 'name'>[];
+    majors: IMajor['name'][];
   }
 
   export interface IUpdateProfileRequest {

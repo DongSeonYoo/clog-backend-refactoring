@@ -1,98 +1,130 @@
-import { Knex } from 'knex';
+import { Kysely, Transaction } from 'kysely';
+import { DB } from 'kysely-codegen';
 import { Inject, Service } from 'typedi';
-import { IClub } from '../interfaces/club/club.interface';
 import { IBelong } from '../interfaces/club/belong.interface';
 import { IBigCategory } from '../interfaces/club/big-category.interface';
 import { ISmallCategory } from '../interfaces/club/small-category.interface';
+import { IClub } from '../interfaces/club/club.interface';
 import { IAccount } from '../interfaces/account/account.interface';
 import { IPosition } from '../interfaces/club/club.enum';
 
 @Service()
 export class ClubRepository {
-  constructor(@Inject('knex') private readonly knex: Knex) {}
+  constructor(@Inject('kysely') private readonly kysely: Kysely<DB>) {}
 
   /**
-   * 동아리 생성 및 회장 등록
+   * 소속 인덱스로 소속 조회
+   * @param belongIdx 소속 인덱스
+   * @returns 소속 정보
+   */
+  async getBelongByIdx(belongIdx: IBelong['idx']): Promise<IBelong | undefined> {
+    const belongResult = await this.kysely
+      .selectFrom('belong')
+      .selectAll()
+      .where('belong.idx', '=', belongIdx)
+      .executeTakeFirst();
+
+    return belongResult;
+  }
+
+  /**
+   * 대분류 인덱스로 대분류 조회
+   * @param categoryIdx 대분류 인덱스
+   * @returns 대분류 정보
+   */
+  async getBigCategoryByIdx(categoryIdx: IBigCategory['idx']): Promise<IBigCategory | undefined> {
+    const categoryResult = await this.kysely
+      .selectFrom('bigCategory')
+      .selectAll()
+      .where('bigCategory.idx', '=', categoryIdx)
+      .executeTakeFirst();
+
+    return categoryResult;
+  }
+
+  /**
+   * 소분류 인덱스로 소분류 조회
+   * @param categoryIdx 소분류 인덱스
+   * @returns 소분류 정보
+   */
+  async getSmallCategoryByIdx(
+    categoryIdx: ISmallCategory['idx'],
+  ): Promise<ISmallCategory | undefined> {
+    const categoryResult = await this.kysely
+      .selectFrom('smallCategory')
+      .selectAll()
+      .where('smallCategory.idx', '=', categoryIdx)
+      .executeTakeFirst();
+
+    return categoryResult;
+  }
+
+  /**
+   * 동아리 이름 중복 확인
+   * @param name 동아리 이름
+   * @returns 동아리 이름 중복 여부
+   */
+  async checkDuplicateClubName(name: IClub['name']): Promise<boolean> {
+    const clubNameResult = await this.kysely
+      .selectFrom('club')
+      .select('club.name')
+      .where('club.name', '=', name)
+      .where('club.deletedAt', 'is', null)
+      .executeTakeFirst();
+
+    return clubNameResult ? true : false;
+  }
+
+  /**
+   * 동아리 생성
    * @param input 동아리 정보
+   * @param accountIdx 유저 인덱스
    * @returns 생성된 동아리 인덱스
    */
   async createClubWithInsertAdmin(
     input: IClub.ICreateClubRequest,
     accountIdx: IAccount['idx'],
   ): Promise<IClub['idx']> {
-    const createdClubIdx = await this.knex.transaction(async (tx) => {
-      // 동아리 생성
-      const [clubIdx] = await this.knex('club').insert({
-        ...input,
-      });
+    const createdClubTx = await this.kysely.transaction().execute(async (tx) => {
+      const createdClub = await tx
+        .insertInto('club')
+        .values({
+          ...input,
+        })
+        .returning('club.idx')
+        .executeTakeFirstOrThrow();
 
-      // 동아리 회장 등록
-      await this.insertMember(
+      await this.insertMemberToClub(
         {
           accountIdx,
-          clubIdx,
+          clubIdx: createdClub.idx,
           position: IPosition.ADMIN,
         },
         tx,
       );
 
-      return clubIdx;
+      return createdClub;
     });
 
-    return createdClubIdx;
+    return createdClubTx.idx;
   }
 
   /**
-   * 동아리 유저 생성
-   * @param createMemberInput 유저 인덱스, 동아리 인덱스, 생성할 직급
-   * @param tx? 트랜잭션 커넥션
+   * 동아리 멤버 추가
+   * @param input 추가 정보
+   * @param tx? 트랜잭션 객체 (optional)
+   * @returns 생성된 동아리 멤버
    */
-  async insertMember(
-    createMemberInput: IClub.ICreateClubMember,
-    tx?: Knex.Transaction,
-  ): Promise<void> {
-    await (tx ?? this.knex)('clubMember').insert({
-      ...createMemberInput,
-    });
+  async insertMemberToClub(
+    input: IClub.ICreateClubMember,
+    tx?: Transaction<DB>,
+  ): Promise<IAccount['idx']> {
+    const clubMember = await (tx ?? this.kysely)
+      .insertInto('clubMember')
+      .values(input)
+      .returning('clubMember.accountIdx')
+      .executeTakeFirstOrThrow();
 
-    return;
-  }
-
-  /**
-   * 동아리 소속이 존재하는지 확인
-   */
-  async getClubBelong(belongIdx: IBelong['idx']): Promise<IBelong | undefined> {
-    const belong = await this.knex('belong').where('idx', belongIdx).first();
-
-    return belong;
-  }
-
-  /**
-   * 동아리 대분류가 존재하는지 확인
-   */
-  async getBigCategory(categoryIdx: IBigCategory['idx']): Promise<IBigCategory | undefined> {
-    const bigCategory = await this.knex('bigCategory').where('idx', categoryIdx).first();
-
-    return bigCategory;
-  }
-
-  /**
-   * 동아리 소분류가 존재하는지 확인
-   */
-  async getSmallCategory(categoryIdx: ISmallCategory['idx']): Promise<ISmallCategory | undefined> {
-    const smallCategory = await this.knex('bigCategory').where('idx', categoryIdx).first();
-
-    return smallCategory;
-  }
-
-  /**
-   * 동아리 이름 중복 확인
-   * @param name 동아리 이름
-   * @returns 결과
-   */
-  async checkDuplicateName(name: IClub['name']): Promise<string | undefined> {
-    const foundClub = await this.knex('club').select('name').where('name', name).first();
-
-    return foundClub?.name;
+    return clubMember.accountIdx;
   }
 }
