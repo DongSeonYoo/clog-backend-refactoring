@@ -13,15 +13,13 @@ export class AccountService {
     input: Omit<IAccount.ICreateAccount, 'personalColor'>,
   ): Promise<Pick<IAccount, 'idx'>> {
     // 1. 이메일 중복 체크
-    // @ts-ignore
     const foundAccount = await this.accountRepository.findAccountByEmail(input.email);
     if (foundAccount) {
       throw new BadRequestException('이미 존재하는 이메일입니다.');
     }
 
     // 2. 전공 인덱스 확인
-    // @ts-ignore
-    const result = await this.accountRepository.findMajorIdx(input.major);
+    const result = await this.accountRepository.checkMajorList(input.major.map((e) => e.idx));
     if (result.length !== input.major.length) {
       throw new BadRequestException('존재하지 않는 전공이 포함되어 있습니다.');
     }
@@ -32,7 +30,7 @@ export class AccountService {
     // 4. personalColor 생성
     const personalColor = generateRandomColorCode();
 
-    // @ts-ignore
+    // 5. 회원 생성
     const accountIdx = await this.accountRepository.createAccount({
       ...input,
       password: hashedPassword,
@@ -49,14 +47,18 @@ export class AccountService {
    * @param accountIdx 사용자 인덱스
    */
   async getAccountProfile(accountIdx: IAccount['idx']): Promise<IAccount.IAccountProfileResponse> {
-    // @ts-ignore
-    const majorList = await this.accountRepository.getAccountMajor(accountIdx);
-    // @ts-ignore
     const profile = await this.accountRepository.getAccountProfile(accountIdx);
 
+    if (!profile) {
+      throw new NotFoundException('해당하는 사용자가 존재하지 않습니다.');
+    }
+
     return {
-      ...profile,
-      major: majorList,
+      name: profile.name,
+      admissionYear: profile.admissionYear,
+      personalColor: profile.personalColor,
+      majors: profile.majors,
+      createdAt: profile.createdAt,
     };
   }
 
@@ -69,21 +71,20 @@ export class AccountService {
     input: IAccount.IUpdateProfileRequest,
     accountIdx: IAccount['idx'],
   ): Promise<void> {
-    // @ts-ignore
     const foundAccountResult = await this.accountRepository.findAccountByIdx(accountIdx);
     if (!foundAccountResult) {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
     }
 
     if (input.major) {
-      // @ts-ignore
-      const findMajorList = await this.accountRepository.findMajorIdx(input.major);
+      const findMajorList = await this.accountRepository.checkMajorList(
+        input.major.map((e) => e.idx),
+      );
       if (findMajorList.length !== input.major.length) {
         throw new BadRequestException('존재하지 않는 전공이 포함되어 있습니다.');
       }
     }
 
-    // @ts-ignore
     await this.accountRepository.updateAccountInfo(input, accountIdx);
 
     return;
@@ -94,14 +95,12 @@ export class AccountService {
    * @param accountIdx 사용자 인덱스
    */
   async deleteAccount(accountIdx: IAccount['idx']): Promise<void> {
-    // @ts-ignore
     const foundAccountResult = await this.accountRepository.findAccountByIdx(accountIdx);
     if (!foundAccountResult) {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
     }
 
     // 사용자 정보 업데이트 (deletedAt = new Date())
-    // @ts-ignore
     await this.accountRepository.deleteAccount(accountIdx);
 
     return;
