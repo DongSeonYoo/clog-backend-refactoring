@@ -6,6 +6,8 @@ const env = {
   //mode
   MODE: process.env.MODE as string,
 
+  DATABASE_URL: process.env.DATABASE_URL as string,
+
   // CORS
   CORS_ORIGIN: process.env.CORS_ORIGIN as string,
 
