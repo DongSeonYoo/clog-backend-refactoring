@@ -43,12 +43,12 @@ export interface IClub {
   /**
    * 동아리 프로필 이미지
    */
-  profileImage: string;
+  profileImg: string;
 
   /**
    * 동아리 배너 이미지
    */
-  bannerImage: string;
+  bannerImg: string;
 
   /**
    * 생성 일
@@ -76,8 +76,8 @@ export namespace IClub {
       | 'name'
       | 'summary'
       | 'isRecruit'
-      | 'profileImage'
-      | 'bannerImage'
+      | 'profileImg'
+      | 'bannerImg'
     > {}
 
   export interface ICreateClubMember {
@@ -89,7 +89,7 @@ export namespace IClub {
   export interface IClubProfile
     extends Pick<
       IClub,
-      'name' | 'profileImage' | 'bannerImage' | 'summary' | 'isRecruit' | 'createdAt'
+      'name' | 'profileImg' | 'bannerImg' | 'summary' | 'isRecruit' | 'createdAt'
     > {
     belong: IBelong['name'];
     bigCategory: IBigCategory['name'];
