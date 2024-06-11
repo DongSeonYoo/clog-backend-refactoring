@@ -2,8 +2,7 @@ import { MockProxy, mock } from 'jest-mock-extended';
 import { ClubService } from '../../../src/services/club.service';
 import { ClubRepository } from '../../../src/repositories/club.repository';
 import { IClub } from '../../../src/interfaces/club/club.interface';
-import { BadRequestException, NotFoundException } from '../../../src/utils/custom-error.util';
-import { IPosition } from '../../../src/interfaces/club/club.enum';
+import { BadRequestException } from '../../../src/utils/custom-error.util';
 
 describe('clubService', () => {
   let clubService: ClubService;
@@ -21,71 +20,65 @@ describe('clubService', () => {
       belongIdx: 1,
       bigCategoryIdx: 1,
       smallCategoryIdx: 1,
-      bannerImage: 'banner.img',
-      profileImage: 'profile.img',
+      bannerImg: 'banner.img',
+      profileImg: 'profile.img',
     };
     const accountIdx = 1;
 
     it('동아리를 생성하고 동아리 회장으로 등록한다', async () => {
       // given
       const createdClubIdx = 1;
-      // @ts-ignore
-      mockClubRepository.getClubBelong.mockResolvedValue({ idx: 1, name: '소속' });
-      // @ts-ignore
-      mockClubRepository.getSmallCategory.mockResolvedValue({ idx: 1, name: '소분류 카테고리' });
-      // @ts-ignore
-      mockClubRepository.getBigCategory.mockResolvedValue({ idx: 1, name: '대분류 카테고리' });
+      mockClubRepository.getSmallCategoryByIdx.mockResolvedValue({} as any);
+      mockClubRepository.getBelongByIdx.mockResolvedValue({} as any);
+      mockClubRepository.getBigCategoryByIdx.mockResolvedValue({} as any);
+      mockClubRepository.checkDuplicateClubName.mockResolvedValue(false);
 
-      // @ts-ignore
       mockClubRepository.createClubWithInsertAdmin.mockResolvedValue(createdClubIdx);
 
       // when
+      const spy = jest.spyOn(mockClubRepository, 'createClubWithInsertAdmin');
       const createClubFunc = clubService.createClub(input, accountIdx);
 
       // then
-      expect(createClubFunc).resolves.toEqual(createdClubIdx);
+      await expect(createClubFunc).resolves.toEqual(createdClubIdx);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(input, accountIdx);
     });
 
     it('소속이 존재하지 않으면 BadRequestException이 발생한다', async () => {
       // given
-      // @ts-ignore
-      mockClubRepository.getClubBelong.mockResolvedValue(undefined);
+      mockClubRepository.getBelongByIdx.mockResolvedValue(undefined);
 
       // when
       const createClubFunc = clubService.createClub(input, accountIdx);
 
       // then
-      expect(createClubFunc).rejects.toBeInstanceOf(BadRequestException);
+      await expect(createClubFunc).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('대분류 카테고리가 존재하지 않으면 BadRequestException이 발생한다', async () => {
       // given
-      // @ts-ignore
-      mockClubRepository.getClubBelong.mockResolvedValue({ idx: 1, name: '소속' });
-      // @ts-ignore
-      mockClubRepository.getBigCategory.mockResolvedValue(undefined);
+      mockClubRepository.getBelongByIdx.mockResolvedValue({ idx: 1, name: '소속' });
+      mockClubRepository.getBigCategoryByIdx.mockResolvedValue(undefined);
 
       // when
       const createClubFunc = clubService.createClub(input, accountIdx);
 
       // then
-      expect(createClubFunc).rejects.toBeInstanceOf(BadRequestException);
+      await expect(createClubFunc).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('소분류 카테고리가 존재하지 않으면 BadRequestException이 발생한다', async () => {
       // given
-      // @ts-ignore
-      mockClubRepository.getClubBelong.mockResolvedValue({ idx: 1, name: '소속' });
-      // @ts-ignore
-      mockClubRepository.getBigCategory.mockResolvedValue({ idx: 1, name: '대분류 카테고리' });
-      // @ts-ignore
-      mockClubRepository.getSmallCategory.mockResolvedValue(undefined);
+      mockClubRepository.getBelongByIdx.mockResolvedValue({ idx: 1, name: '소속' });
+      mockClubRepository.getBigCategoryByIdx.mockResolvedValue({ idx: 1, name: '대분류 카테고리' });
+      mockClubRepository.getSmallCategoryByIdx.mockResolvedValue(undefined);
 
       // when
       const createClubFunc = clubService.createClub(input, accountIdx);
 
       // then
-      expect(createClubFunc).rejects.toBeInstanceOf(BadRequestException);
+      await expect(createClubFunc).rejects.toBeInstanceOf(BadRequestException);
     });
   });
 
@@ -95,12 +88,11 @@ describe('clubService', () => {
       const belongIdx = 2222;
 
       // when
-      // @ts-ignore
-      mockClubRepository.getClubBelong.mockResolvedValue(undefined);
+      mockClubRepository.getBelongByIdx.mockResolvedValue(undefined);
       const checkBelongFunc = clubService.checkBelong(belongIdx);
 
       // then
-      expect(checkBelongFunc).rejects.toBeInstanceOf(BadRequestException);
+      await expect(checkBelongFunc).rejects.toBeInstanceOf(BadRequestException);
     });
   });
 
@@ -110,12 +102,11 @@ describe('clubService', () => {
       const bigCategoryIdx = 2222;
 
       // when
-      // @ts-ignore
-      mockClubRepository.getBigCategory.mockResolvedValue(undefined);
+      mockClubRepository.getBigCategoryByIdx.mockResolvedValue(undefined);
       const checkBigCategoryFunc = clubService.checkBigCategory(bigCategoryIdx);
 
       // then
-      expect(checkBigCategoryFunc).rejects.toBeInstanceOf(BadRequestException);
+      await expect(checkBigCategoryFunc).rejects.toBeInstanceOf(BadRequestException);
     });
   });
 
@@ -123,27 +114,25 @@ describe('clubService', () => {
     it('중복된 동아리 이름이 존재하면 BadRequestException을 던진다', async () => {
       // given
       const existsClubName = 'club1';
-      // @ts-ignore
-      mockClubRepository.checkDuplicateName.mockResolvedValue(existsClubName);
+      mockClubRepository.checkDuplicateClubName.mockResolvedValue(true);
 
       // when
       const checkDuplicateNameFunc = clubService.checkDuplicateName(existsClubName);
 
       // then
-      expect(checkDuplicateNameFunc).rejects.toBeInstanceOf(BadRequestException);
+      await expect(checkDuplicateNameFunc).rejects.toBeInstanceOf(BadRequestException);
     });
   });
 
   it('중복된 동아리 이름이 존재하지 않으면 void를 반환한다', async () => {
     // given
     const notExistsClubName = 'club1';
-    // @ts-ignore
-    mockClubRepository.checkDuplicateName.mockResolvedValue(undefined);
+    mockClubRepository.checkDuplicateClubName.mockResolvedValue(false);
 
     // when
     const checkDuplicateNameFunc = clubService.checkDuplicateName(notExistsClubName);
 
     // then
-    expect(checkDuplicateNameFunc).resolves.toBeUndefined();
+    await expect(checkDuplicateNameFunc).resolves.toBeUndefined();
   });
 });
