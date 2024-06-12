@@ -10,6 +10,7 @@ import {
   isRecruitBodyValidation,
   clubProfileImgBodyValidation,
   smallCategoryBodyValidation,
+  clubIdxBodyValidation,
 } from '../utils/validation/club.validation';
 import { clubService } from '../utils/container.util';
 import { IClub } from '../interfaces/club/club.interface';
@@ -63,4 +64,23 @@ clubRouter.post(
       return res.send(ResponseEntity.SUCCESS_WITH('사용 가능한 이름입니다'));
     }),
   ),
+);
+
+/**
+ * POST /club/join-request
+ * @Role User
+ * 동아리 가입 신청
+ */
+clubRouter.post(
+  '/join-request',
+  loginAuthGuard(),
+  validate([clubIdxBodyValidation]),
+  wrapper(async (req, res, next) => {
+    const accountIdx: IAccount['idx'] = req.user.idx;
+    const clubIdx: IClub['idx'] = req.body.clubIdx;
+
+    await clubService.joinRequest(clubIdx, accountIdx);
+
+    return res.send(ResponseEntity.SUCCESS);
+  }),
 );

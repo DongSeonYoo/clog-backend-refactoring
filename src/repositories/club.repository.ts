@@ -7,10 +7,27 @@ import { ISmallCategory } from '../interfaces/club/small-category.interface';
 import { IClub } from '../interfaces/club/club.interface';
 import { IAccount } from '../interfaces/account/account.interface';
 import { IPosition } from '../interfaces/club/club.enum';
+import { IJoinRequest } from '../interfaces/club/join-request.interface';
 
 @Service()
 export class ClubRepository {
   constructor(@Inject('kysely') private readonly kysely: Kysely<DB>) {}
+
+  /**
+   * 동아리 인덱스로 동아리 조회
+   * @param clubIdx 동아리 인덱스
+   * @returns 동아리 정보
+   */
+  async getClubByIdx(clubIdx: IClub['idx']): Promise<IClub | undefined> {
+    const clubResult = await this.kysely
+      .selectFrom('club')
+      .selectAll()
+      .where('club.idx', '=', clubIdx)
+      .where('club.deletedAt', 'is', null)
+      .executeTakeFirst();
+
+    return clubResult;
+  }
 
   /**
    * 소속 인덱스로 소속 조회
@@ -119,12 +136,69 @@ export class ClubRepository {
     input: IClub.ICreateClubMember,
     tx?: Transaction<DB>,
   ): Promise<IAccount['idx']> {
-    const clubMember = await (tx ?? this.kysely)
+    const createMemberResult = await (tx ?? this.kysely)
       .insertInto('clubMember')
       .values(input)
       .returning('clubMember.accountIdx')
       .executeTakeFirstOrThrow();
 
-    return clubMember.accountIdx;
+    return createMemberResult.accountIdx;
+  }
+
+  /**
+   * 동아리 가입 신청
+   * @param accountIdx 유저 인덱스
+   * @param clubIdx 동아리 인덱스
+   * @returns 생성된 가입 신청 인덱스
+   */
+  async getClubMember(accountIdx: IAccount['idx'], clubIdx: IClub['idx']) {
+    const getMemberResult = await this.kysely
+      .selectFrom('clubMember')
+      .select('clubMember.accountIdx')
+      .where('clubMember.accountIdx', '=', accountIdx)
+      .where('clubMember.clubIdx', '=', clubIdx)
+      .where('clubMember.deletedAt', 'is', null)
+      .executeTakeFirst();
+
+    return getMemberResult;
+  }
+
+  /**
+   * 가입 요청 조회
+   * @param accountIdx 유저 인덱스
+   * @param clubIdx 동아리 인덱스
+   * @returns 가입 요청 정보
+   */
+  async getJoinRequestByAccountIdx(accountIdx: IAccount['idx'], clubIdx: IClub['idx']) {
+    const requestResult = await this.kysely
+      .selectFrom('joinRequest')
+      .select('joinRequest.idx')
+      .where('joinRequest.accountIdx', '=', accountIdx)
+      .where('joinRequest.clubIdx', '=', clubIdx)
+      .where('joinRequest.deletedAt', 'is', null)
+      .executeTakeFirst();
+
+    return requestResult;
+  }
+  /**
+   * 가입 요청 생성
+   * @param clubIdx 동아리 인덱스
+   * @param accountIdx 유저 인덱스
+   * @returns 생성된 가입 요청 인덱스
+   */
+  async insertJoinRequest(
+    clubIdx: IClub['idx'],
+    accountIdx: IAccount['idx'],
+  ): Promise<IJoinRequest['idx']> {
+    const requestResult = await this.kysely
+      .insertInto('joinRequest')
+      .values({
+        clubIdx,
+        accountIdx,
+      })
+      .returning('joinRequest.idx')
+      .executeTakeFirstOrThrow();
+
+    return requestResult.idx;
   }
 }

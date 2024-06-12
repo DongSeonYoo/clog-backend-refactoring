@@ -2,10 +2,11 @@ import { Service } from 'typedi';
 import { IClub } from '../interfaces/club/club.interface';
 import { IAccount } from '../interfaces/account/account.interface';
 import { ClubRepository } from '../repositories/club.repository';
-import { BadRequestException } from '../utils/custom-error.util';
+import { BadRequestException, NotFoundException } from '../utils/custom-error.util';
 import { IBelong } from '../interfaces/club/belong.interface';
 import { IBigCategory } from '../interfaces/club/big-category.interface';
 import { ISmallCategory } from '../interfaces/club/small-category.interface';
+import { IJoinRequest } from '../interfaces/club/join-request.interface';
 
 @Service()
 export class ClubService {
@@ -79,5 +80,42 @@ export class ClubService {
     }
 
     return;
+  }
+
+  /**
+   * 동아리 가입 신청
+   * 1. 해당 동아리가 존재하는 동아리인지 검사
+   * 2. 해당 동아리가 가입 신청을 받는 상태인지 검사
+   * 3. 이미 가입되어있는 동아리인지 검사
+   * 4. 이미 해당 동아리에 가입 요청이 되어있는지 검사
+   * 5. 가입 요청 생성
+   * @param clubIdx
+   * @param accountIdx
+   */
+  async joinRequest(
+    clubIdx: IClub['idx'],
+    accountIdx: IAccount['idx'],
+  ): Promise<IJoinRequest['idx']> {
+    const club = await this.clubRepository.getClubByIdx(clubIdx);
+    if (!club) {
+      throw new NotFoundException('해당하는 동아리가 존재하지 않습니다');
+    }
+    if (!club.isRecruit) {
+      throw new BadRequestException('가입 신청이 열려있지 않습니다');
+    }
+
+    const clubMember = await this.clubRepository.getClubMember(accountIdx, clubIdx);
+    if (!clubMember) {
+      throw new BadRequestException('이미 가입되어있는 동아리입니다');
+    }
+
+    const joinRequest = await this.clubRepository.getJoinRequestByAccountIdx(accountIdx, clubIdx);
+    if (!joinRequest) {
+      throw new BadRequestException('이미 가입 요청이 존재합니다');
+    }
+
+    const requestIdx = await this.clubRepository.insertJoinRequest(clubIdx, accountIdx);
+
+    return requestIdx;
   }
 }
