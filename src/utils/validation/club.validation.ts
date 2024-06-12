@@ -56,3 +56,8 @@ export const clubBannerImgBodyValidation: ValidationChain = body('bannerImg')
  * @params clubIdx 동아리 인덱스
  */
 export const clubIdxParamValidation: ValidationChain = param('clubIdx').notEmpty().isInt().toInt();
+
+/**
+ * @body clubIdx 동아리 인덱스
+ */
+export const clubIdxBodyValidation: ValidationChain = body('clubIdx').notEmpty().isInt().toInt();
