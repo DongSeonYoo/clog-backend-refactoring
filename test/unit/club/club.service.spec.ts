@@ -135,4 +135,12 @@ describe('clubService', () => {
     // then
     await expect(checkDuplicateNameFunc).resolves.toBeUndefined();
   });
+
+  describe('joinRequest', () => {
+    it.todo('해당하는 동아리가 존재하지 않으면 NotFoundException을 던진다');
+    it.todo('해당 동아리가 가입신청을 받지 않는 상태이면 BadRequestException을 던진다');
+    it.todo('이미 해당 동아리에 가입되어있을 시 BadRequestException을 던진다');
+    it.todo('이미 가입되어있는 동아리라면 BadRequestException을 던진다');
+    it.todo('가입 요청을 생성한다');
+  });
 });
