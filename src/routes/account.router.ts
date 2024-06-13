@@ -11,8 +11,9 @@ import { validate } from '../middlewares/validate.middleware';
 import { IAccount } from '../interfaces/account/account.interface';
 import { ResponseEntity } from '../utils/response.util';
 import { wrapper } from '../utils/wrapper.util';
-import { loginAuthGuard } from '../middlewares/login-auth.middleware';
+
 import { accountService, authService } from '../utils/container.util';
+import { loginAuthGuard } from '../middlewares/auth/login-auth.middleware';
 
 export const accountRouter = Router();
 

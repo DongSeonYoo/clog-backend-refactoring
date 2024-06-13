@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { loginAuthGuard } from '../middlewares/login-auth.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import {
   belongBodyValidation,
@@ -11,12 +10,15 @@ import {
   clubProfileImgBodyValidation,
   smallCategoryBodyValidation,
   clubIdxBodyValidation,
+  clubIdxParamValidation,
 } from '../utils/validation/club.validation';
 import { clubService } from '../utils/container.util';
 import { IClub } from '../interfaces/club/club.interface';
 import { IAccount } from '../interfaces/account/account.interface';
 import { ResponseEntity } from '../utils/response.util';
 import { wrapper } from '../utils/wrapper.util';
+import { loginAuthGuard } from '../middlewares/auth/login-auth.middleware';
+import { clubAuthGuard } from '../middlewares/auth/club-auth.middleware';
 
 export const clubRouter = Router();
 

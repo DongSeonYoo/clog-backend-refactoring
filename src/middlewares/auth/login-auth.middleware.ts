@@ -1,9 +1,9 @@
+import env from '../../config/env.config';
 import { RequestHandler } from 'express';
-import { wrapper } from '../utils/wrapper.util';
-import { UnauthorizedException } from '../utils/custom-error.util';
-import { TokenManager } from '../utils/token-manager.util';
-import { redisService } from '../utils/container.util';
-import env from '../config/env.config';
+import { UnauthorizedException } from '../../utils/custom-error.util';
+import { TokenManager } from '../../utils/token-manager.util';
+import { redisService } from '../../utils/container.util';
+import { wrapper } from '../../utils/wrapper.util';
 
 export const loginAuthGuard = (): RequestHandler => {
   return wrapper(async (req, res, next) => {
