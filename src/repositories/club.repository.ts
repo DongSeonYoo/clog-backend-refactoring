@@ -8,6 +8,7 @@ import { IClub } from '../interfaces/club/club.interface';
 import { IAccount } from '../interfaces/account/account.interface';
 import { IPosition } from '../interfaces/club/club.enum';
 import { IJoinRequest } from '../interfaces/club/join-request.interface';
+import { IClubMember } from '../interfaces/club/club-member.interface';
 
 @Service()
 export class ClubRepository {
@@ -146,19 +147,19 @@ export class ClubRepository {
   }
 
   /**
-   * 동아리 가입 신청
+   * 자기가 가입한 동아리 정보를 조회
    * @param accountIdx 유저 인덱스
-   * @param clubIdx 동아리 인덱스
-   * @returns 생성된 가입 신청 인덱스
+   * @returns 가입되어있는 동아리 정보 리스트
    */
-  async getClubMember(accountIdx: IAccount['idx'], clubIdx: IClub['idx']) {
+  async getMyClubList(
+    accountIdx: IAccount['idx'],
+  ): Promise<Pick<IClubMember, 'clubIdx' | 'position'>[]> {
     const getMemberResult = await this.kysely
       .selectFrom('clubMember')
-      .select('clubMember.accountIdx')
+      .select(['clubMember.clubIdx', 'clubMember.position'])
       .where('clubMember.accountIdx', '=', accountIdx)
-      .where('clubMember.clubIdx', '=', clubIdx)
       .where('clubMember.deletedAt', 'is', null)
-      .executeTakeFirst();
+      .execute();
 
     return getMemberResult;
   }

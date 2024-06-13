@@ -100,13 +100,18 @@ export class ClubService {
     if (!club) {
       throw new NotFoundException('해당하는 동아리가 존재하지 않습니다');
     }
+
     if (!club.isRecruit) {
       throw new BadRequestException('가입 신청이 열려있지 않습니다');
     }
 
-    const clubMember = await this.clubRepository.getClubMember(accountIdx, clubIdx);
-    if (!clubMember) {
-      throw new BadRequestException('이미 가입되어있는 동아리입니다');
+    const myClubInfo = await this.clubRepository.getMyClubList(accountIdx);
+    if (myClubInfo.length !== 0) {
+      myClubInfo.map((clubInfo) => {
+        if (clubInfo.clubIdx === clubIdx) {
+          throw new BadRequestException('이미 해당 동아리에 가입되어있습니다');
+        }
+      });
     }
 
     const joinRequest = await this.clubRepository.getJoinRequestByAccountIdx(accountIdx, clubIdx);
