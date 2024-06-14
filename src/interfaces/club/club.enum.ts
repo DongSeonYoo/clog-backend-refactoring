@@ -1,4 +1,4 @@
 export enum IPosition {
-  ADMIN = 'MANAGER',
+  MANAGER = 'MANAGER',
   MEMBER = 'MEMBER',
 }
