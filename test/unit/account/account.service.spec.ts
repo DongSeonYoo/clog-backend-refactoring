@@ -15,8 +15,6 @@ describe('AccountService', () => {
   });
 
   describe('getAccountProfile', () => {
-    let getAccountProfileFunc;
-
     it('사용자의 프로필을 가져온다', async () => {
       // given
       const accountIdx = 1;
@@ -32,7 +30,7 @@ describe('AccountService', () => {
       mockAccountRepository.getAccountProfile.mockResolvedValue({
         ...expectedResult,
       });
-      getAccountProfileFunc = accountService.getAccountProfile(accountIdx);
+      const getAccountProfileFunc = accountService.getAccountProfile(accountIdx);
 
       // then
       await expect(getAccountProfileFunc).resolves.toEqual(expectedResult);
@@ -44,10 +42,13 @@ describe('AccountService', () => {
 
       // when
       mockAccountRepository.getAccountProfile.mockResolvedValue(undefined);
-      getAccountProfileFunc = accountService.getAccountProfile(accountIdx);
+      const getAccountProfileFunc = accountService.getAccountProfile(accountIdx);
 
       // then
       await expect(getAccountProfileFunc).rejects.toBeInstanceOf(NotFoundException);
+      await expect(getAccountProfileFunc).rejects.toMatchObject({
+        message: '해당하는 사용자가 존재하지 않습니다.',
+      });
     });
   });
 
@@ -60,31 +61,33 @@ describe('AccountService', () => {
       major: [{ idx: 1 }, { idx: 2 }],
       admissionYear: 21,
     };
-    let createAccountFunc;
 
     it('중복된 이메일이 존재 할 경우 BadRequestException이 발생된다', async () => {
       // when
       mockAccountRepository.findAccountByEmail.mockResolvedValue({} as IAccount);
-      createAccountFunc = accountService.createAccount(signupInput);
+      const createAccountFunc = accountService.createAccount(signupInput);
 
       // then
       await expect(createAccountFunc).rejects.toBeInstanceOf(BadRequestException);
+      await expect(createAccountFunc).rejects.toMatchObject({
+        message: '이미 존재하는 이메일입니다.',
+      });
     });
 
     it('존재하지 않는 전공이 포함되어 있을 경우 BadRequestException이 발생된다', async () => {
       // when
       mockAccountRepository.checkMajorList.mockResolvedValue([]);
+      const createAccountFunc = accountService.createAccount(signupInput);
 
       // then
-      await expect(accountService.createAccount(signupInput)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(createAccountFunc).rejects.toBeInstanceOf(BadRequestException);
+      await expect(createAccountFunc).rejects.toMatchObject({
+        message: '존재하지 않는 전공이 포함되어 있습니다.',
+      });
     });
   });
 
   describe('updateAccountProfile', () => {
-    let updateAccountProfileFunc;
-
     it('사용자의 프로필을 수정한다', async () => {
       // given
       const accountIdx = 1;
@@ -98,7 +101,7 @@ describe('AccountService', () => {
       const updateAccountInfoSpy = jest.spyOn(mockAccountRepository, 'updateAccountInfo');
       mockAccountRepository.findAccountByIdx.mockResolvedValue({} as IAccount);
       mockAccountRepository.checkMajorList.mockResolvedValue([{} as IMajor['idx']]);
-      updateAccountProfileFunc = accountService.updateAccountProfile(updateInput, accountIdx);
+      const updateAccountProfileFunc = accountService.updateAccountProfile(updateInput, accountIdx);
 
       // then
       await expect(updateAccountProfileFunc).resolves.toBeUndefined();
@@ -111,60 +114,66 @@ describe('AccountService', () => {
 
       // when
       mockAccountRepository.findAccountByIdx.mockResolvedValue(undefined);
-      updateAccountProfileFunc = accountService.updateAccountProfile({}, accountIdx);
+      const updateAccountProfileFunc = accountService.updateAccountProfile({}, accountIdx);
 
       // then
       await expect(updateAccountProfileFunc).rejects.toBeInstanceOf(NotFoundException);
+      await expect(updateAccountProfileFunc).rejects.toMatchObject({
+        message: '존재하지 않는 사용자입니다.',
+      });
     });
 
     it('존재하지 않는 전공이 포함되어있으면 BadRequestException이 발생된다', async () => {
       // given
       const major = [
         {
-          idx: 1,
+          idx: 1, // 존재하는 전공
         },
         {
-          idx: 13333,
+          idx: 13333, // 존재하지 않는 전공
         },
       ];
 
       // when
-      // @ts-ignore
-      mockAccountRepository.findMajorIdx.mockResolvedValue([]);
-      updateAccountProfileFunc = accountService.updateAccountProfile({ major }, 1);
+      mockAccountRepository.findAccountByIdx.mockResolvedValue({} as IAccount);
+      mockAccountRepository.checkMajorList.mockResolvedValue([1]);
+      const updateAccountProfileFunc = accountService.updateAccountProfile({ major }, 1);
 
       // then
-      await expect(updateAccountProfileFunc).rejects.toBeInstanceOf(NotFoundException);
+      await expect(updateAccountProfileFunc).rejects.toBeInstanceOf(BadRequestException);
+      await expect(updateAccountProfileFunc).rejects.toMatchObject({
+        message: '존재하지 않는 전공이 포함되어 있습니다.',
+      });
     });
   });
 
   describe('deleteAccount', () => {
-    let accountIdx;
-    let deleteAccountFunc;
-
     it('존재하지 않는 회원 인덱스일 경우 NotFoundException을 던진다', async () => {
       // given
-      accountIdx = -1;
+      const accountIdx = -1;
 
       // when
       mockAccountRepository.findAccountByIdx.mockResolvedValue(undefined);
-      deleteAccountFunc = accountService.deleteAccount(accountIdx);
+      const deleteAccountFunc = accountService.deleteAccount(accountIdx);
 
       // then
       await expect(deleteAccountFunc).rejects.toBeInstanceOf(NotFoundException);
+      await expect(deleteAccountFunc).rejects.toMatchObject({
+        message: '존재하지 않는 사용자입니다.',
+      });
     });
 
     it('회원을 탈퇴한다', async () => {
       // given
-      accountIdx = 1;
+      const accountIdx = 1;
 
       // when
       mockAccountRepository.findAccountByIdx.mockResolvedValue({} as IAccount);
       mockAccountRepository.deleteAccount.mockResolvedValue();
-      deleteAccountFunc = await accountService.deleteAccount(accountIdx);
+      const deleteAccountFunc = accountService.deleteAccount(accountIdx);
 
       // then
-      expect(deleteAccountFunc).resolves;
+      await expect(deleteAccountFunc).resolves.toBeUndefined();
     });
   });
 });
