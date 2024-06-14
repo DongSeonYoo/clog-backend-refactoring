@@ -25,7 +25,6 @@ export const errorHandling = () => {
     }
 
     if (error instanceof CustomError) {
-      console.log(error);
       return res
         .status(error.statusCode)
         .send(ResponseEntity.ERROR_WITH(error.statusCode, error.message, error.data));

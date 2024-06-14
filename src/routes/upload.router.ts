@@ -1,10 +1,9 @@
-import { Router } from 'express';
-import { loginAuthGuard } from '../middlewares/login-auth.middleware';
-import { validate } from '../middlewares/validate.middleware';
-import { wrapper } from '../utils/wrapper.util';
 import s3Uploader from '../middlewares/upload.middleware';
+import { Router } from 'express';
+import { wrapper } from '../utils/wrapper.util';
 import { BadRequestException } from '../utils/custom-error.util';
 import { ResponseEntity } from '../utils/response.util';
+import { loginAuthGuard } from '../middlewares/auth/login-auth.middleware';
 
 export const uploadRouter = Router();
 
