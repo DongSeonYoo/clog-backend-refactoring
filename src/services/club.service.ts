@@ -115,12 +115,16 @@ export class ClubService {
     }
 
     const joinRequest = await this.clubRepository.getJoinRequestByAccountIdx(accountIdx, clubIdx);
-    if (!joinRequest) {
+    if (joinRequest) {
       throw new BadRequestException('이미 가입 요청이 존재합니다');
     }
 
     const requestIdx = await this.clubRepository.insertJoinRequest(clubIdx, accountIdx);
 
     return requestIdx;
+  }
+
+  async getMyClub(accountIdx: IAccount['idx']) {
+    return this.clubRepository.getMyClubList(accountIdx);
   }
 }
