@@ -50,6 +50,7 @@ export class AccountRepository {
         'account.createdAt',
       ])
       .where('accountMajor.accountIdx', '=', accountIdx)
+      .where('account.deletedAt', 'is', null)
       .executeTakeFirst();
 
     return profileResult;

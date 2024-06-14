@@ -116,7 +116,7 @@ export class ClubRepository {
         {
           accountIdx,
           clubIdx: createdClub.idx,
-          position: IPosition.ADMIN,
+          position: IPosition.MANAGER,
         },
         tx,
       );
@@ -157,8 +157,10 @@ export class ClubRepository {
     const getMemberResult = await this.kysely
       .selectFrom('clubMember')
       .select(['clubMember.clubIdx', 'clubMember.position'])
+      .innerJoin('club', 'clubMember.clubIdx', 'club.idx')
       .where('clubMember.accountIdx', '=', accountIdx)
       .where('clubMember.deletedAt', 'is', null)
+      .where('club.deletedAt', 'is', null)
       .execute();
 
     return getMemberResult;
@@ -174,9 +176,11 @@ export class ClubRepository {
     const requestResult = await this.kysely
       .selectFrom('joinRequest')
       .select('joinRequest.idx')
+      .innerJoin('account', 'joinRequest.accountIdx', 'account.idx')
       .where('joinRequest.accountIdx', '=', accountIdx)
       .where('joinRequest.clubIdx', '=', clubIdx)
       .where('joinRequest.deletedAt', 'is', null)
+      .where('account.deletedAt', 'is', null)
       .executeTakeFirst();
 
     return requestResult;
