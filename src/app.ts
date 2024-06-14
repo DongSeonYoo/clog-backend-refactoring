@@ -6,6 +6,7 @@ import { authRouter } from './routes/auth.router';
 import cookieParser from 'cookie-parser';
 import { uploadRouter } from './routes/upload.router';
 import { clubRouter } from './routes/club.router';
+import { loginAuthGuard } from './middlewares/auth/login-auth.middleware';
 
 const app = express();
 
@@ -17,7 +18,7 @@ app.use(express.json());
 app.use('/account', accountRouter);
 app.use('/auth', authRouter);
 app.use('/upload', uploadRouter);
-app.use('/club', clubRouter);
+app.use('/club', loginAuthGuard(), clubRouter);
 
 // 에러 핸들링 미들웨어
 app.use(errorHandling());

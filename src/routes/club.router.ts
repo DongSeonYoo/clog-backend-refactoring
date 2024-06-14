@@ -10,15 +10,12 @@ import {
   clubProfileImgBodyValidation,
   smallCategoryBodyValidation,
   clubIdxBodyValidation,
-  clubIdxParamValidation,
 } from '../utils/validation/club.validation';
 import { clubService } from '../utils/container.util';
 import { IClub } from '../interfaces/club/club.interface';
 import { IAccount } from '../interfaces/account/account.interface';
 import { ResponseEntity } from '../utils/response.util';
 import { wrapper } from '../utils/wrapper.util';
-import { loginAuthGuard } from '../middlewares/auth/login-auth.middleware';
-import { clubAuthGuard } from '../middlewares/auth/club-auth.middleware';
 
 export const clubRouter = Router();
 
@@ -29,7 +26,6 @@ export const clubRouter = Router();
  */
 clubRouter.post(
   '/',
-  loginAuthGuard(),
   validate([
     belongBodyValidation,
     bigCategoryBodyValidation,
@@ -57,7 +53,6 @@ clubRouter.post(
   clubRouter.get(
     '/duplicate/name/:clubName',
     validate([clubNameBodyValidation]),
-    loginAuthGuard(),
     wrapper(async (req, res, next) => {
       const clubName: IClub['name'] = req.params.clubName;
 
@@ -75,7 +70,6 @@ clubRouter.post(
  */
 clubRouter.post(
   '/join-request',
-  loginAuthGuard(),
   validate([clubIdxBodyValidation]),
   wrapper(async (req, res, next) => {
     const accountIdx: IAccount['idx'] = req.user.idx;
@@ -86,3 +80,11 @@ clubRouter.post(
     return res.send(ResponseEntity.SUCCESS);
   }),
 );
+
+/**
+ * GET /club/join-request/{clubIdx}/list
+ * @Role User
+ * 동아리 가입 신청 목록 조회
+ *
+ * 해당 동아리의 회장, 운영진만 가능
+ */
