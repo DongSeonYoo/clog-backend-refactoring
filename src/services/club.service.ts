@@ -7,17 +7,15 @@ import { IBelong } from '../interfaces/club/belong.interface';
 import { IBigCategory } from '../interfaces/club/big-category.interface';
 import { ISmallCategory } from '../interfaces/club/small-category.interface';
 import { IJoinRequest } from '../interfaces/club/join-request.interface';
-import { TransactionBuilder } from 'kysely';
-import { DB } from 'kysely-codegen';
 import { IPosition } from '../interfaces/club/club.enum';
 import { IClubMember } from '../interfaces/club/club-member.interface';
-import { KYSELY_TRANSACTION } from '../config/kysely.config';
+import { TransactionManager } from '../utils/transaction-manager.util';
 
 @Service()
 export class ClubService {
   constructor(
     private readonly clubRepository: ClubRepository,
-    @Inject(KYSELY_TRANSACTION) private readonly transaction: TransactionBuilder<DB>,
+    private readonly transactionManager: TransactionManager,
   ) {}
 
   /**
@@ -38,12 +36,12 @@ export class ClubService {
       this.checkDuplicateName(input.name),
     ]);
 
-    return this.transaction.execute(async (tx) => {
+    return this.transactionManager.runTransaction(async (tx) => {
       const createdClubIdx = await this.clubRepository.createClub(input, tx);
 
       await this.clubRepository.insertMemberToClub(
         {
-          accountIdx,
+          accountIdx: accountIdx,
           clubIdx: createdClubIdx,
           position: IPosition.MANAGER,
         },
