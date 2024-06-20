@@ -5,7 +5,6 @@ import { Container } from 'typedi';
 import env from './env.config';
 
 export const KYSELY = 'KYSELY';
-export const KYSELY_TRANSACTION = 'KYSELY_TRANSACTION';
 
 export const db = new Kysely<DB>({
   dialect: new PostgresDialect({
@@ -18,6 +17,3 @@ export const db = new Kysely<DB>({
 
 // Kysely 의존성 등록
 Container.set(KYSELY, db);
-
-// Kysely Transaction 의존성 등록
-Container.set(KYSELY_TRANSACTION, db.transaction());
