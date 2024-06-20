@@ -4,13 +4,16 @@ import { ClubRepository } from '../../../src/repositories/club.repository';
 import { IClub } from '../../../src/interfaces/club/club.interface';
 import { BadRequestException, NotFoundException } from '../../../src/utils/custom-error.util';
 import { IPosition } from '../../../src/interfaces/club/club.enum';
+import { TransactionManager } from '../../../src/utils/transaction-manager.util';
 
 describe('clubService', () => {
   let clubService: ClubService;
   let mockClubRepository: MockProxy<ClubRepository>;
+  let mockTransactionManager: MockProxy<TransactionManager>;
   beforeEach(() => {
     mockClubRepository = mock<ClubRepository>();
-    clubService = new ClubService(mockClubRepository);
+    mockTransactionManager = mock<TransactionManager>();
+    clubService = new ClubService(mockClubRepository, mockTransactionManager);
   });
 
   describe('createClub', () => {
@@ -33,17 +36,17 @@ describe('clubService', () => {
       mockClubRepository.getBelongByIdx.mockResolvedValue({} as any);
       mockClubRepository.getBigCategoryByIdx.mockResolvedValue({} as any);
       mockClubRepository.checkDuplicateClubName.mockResolvedValue(false);
-
-      mockClubRepository.createClubWithInsertAdmin.mockResolvedValue(createdClubIdx);
-
-      // when
-      const spy = jest.spyOn(mockClubRepository, 'createClubWithInsertAdmin');
-      const createClubFunc = clubService.createClub(input, accountIdx);
+      mockTransactionManager.runTransaction.mockImplementation(async (cb) => {
+        return cb({} as any);
+      });
+      mockClubRepository.insertMemberToClub.mockResolvedValue(accountIdx);
+      mockClubRepository.createClub.mockResolvedValue(createdClubIdx);
 
       // then
-      await expect(createClubFunc).resolves.toEqual(createdClubIdx);
-      expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy).toHaveBeenCalledWith(input, accountIdx);
+      const createClubfunc = clubService.createClub(input, accountIdx);
+
+      await expect(createClubfunc).resolves.toBe(createdClubIdx);
+      expect(jest.spyOn(mockTransactionManager, 'runTransaction')).toHaveBeenCalled();
     });
 
     it('소속이 존재하지 않으면 BadRequestException이 발생한다', async () => {

@@ -3,10 +3,11 @@ import { DB } from 'kysely-codegen';
 import { Inject, Service } from 'typedi';
 import { IAccount } from '../interfaces/account/account.interface';
 import { IMajor } from '../interfaces/club/major.interface';
+import { KYSELY } from '../config/kysely.config';
 
 @Service()
 export class AccountRepository {
-  constructor(@Inject('kysely') private readonly kysely: Kysely<DB>) {}
+  constructor(@Inject(KYSELY) private readonly kysely: Kysely<DB>) {}
 
   /**
    * 이메일로 계정 찾기

@@ -1,4 +1,3 @@
-import '../config/knex.config';
 import '../config/kysely.config';
 import Container from 'typedi';
 import { AccountService } from '../services/account.service';
