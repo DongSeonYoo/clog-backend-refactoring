@@ -1,18 +1,18 @@
 import { Kysely, Transaction } from 'kysely';
-import { DB } from 'kysely-codegen';
 import { Inject, Service } from 'typedi';
 import { IBelong } from '../interfaces/club/belong.interface';
 import { IBigCategory } from '../interfaces/club/big-category.interface';
 import { ISmallCategory } from '../interfaces/club/small-category.interface';
 import { IClub } from '../interfaces/club/club.interface';
 import { IAccount } from '../interfaces/account/account.interface';
-import { IPosition } from '../interfaces/club/club.enum';
 import { IJoinRequest } from '../interfaces/club/join-request.interface';
 import { IClubMember } from '../interfaces/club/club-member.interface';
+import { KYSELY } from '../config/kysely.config';
+import { DB } from 'kysely-codegen';
 
 @Service()
 export class ClubRepository {
-  constructor(@Inject('kysely') private readonly kysely: Kysely<DB>) {}
+  constructor(@Inject(KYSELY) private readonly kysely: Kysely<DB>) {}
 
   /**
    * 동아리 인덱스로 동아리 조회
@@ -99,32 +99,18 @@ export class ClubRepository {
    * @param accountIdx 유저 인덱스
    * @returns 생성된 동아리 인덱스
    */
-  async createClubWithInsertAdmin(
-    input: IClub.ICreateClubRequest,
-    accountIdx: IAccount['idx'],
-  ): Promise<IClub['idx']> {
-    const createdClubTx = await this.kysely.transaction().execute(async (tx) => {
-      const createdClub = await tx
-        .insertInto('club')
-        .values({
-          ...input,
-        })
-        .returning('club.idx')
-        .executeTakeFirstOrThrow();
-
-      await this.insertMemberToClub(
+  async createClub(input: IClub.ICreateClubRequest, tx: Transaction<DB>) {
+    const createClub = await tx
+      .insertInto('club')
+      .values([
         {
-          accountIdx,
-          clubIdx: createdClub.idx,
-          position: IPosition.MANAGER,
+          ...input,
         },
-        tx,
-      );
+      ])
+      .returning('club.idx')
+      .executeTakeFirstOrThrow();
 
-      return createdClub;
-    });
-
-    return createdClubTx.idx;
+    return createClub.idx;
   }
 
   /**
@@ -135,7 +121,7 @@ export class ClubRepository {
    */
   async insertMemberToClub(
     input: IClub.ICreateClubMember,
-    tx?: Transaction<DB>,
+    tx: Transaction<DB>,
   ): Promise<IAccount['idx']> {
     const createMemberResult = await (tx ?? this.kysely)
       .insertInto('clubMember')

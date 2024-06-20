@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import { Inject, Service } from 'typedi';
 import { IClub } from '../interfaces/club/club.interface';
 import { IAccount } from '../interfaces/account/account.interface';
 import { ClubRepository } from '../repositories/club.repository';
@@ -7,10 +7,18 @@ import { IBelong } from '../interfaces/club/belong.interface';
 import { IBigCategory } from '../interfaces/club/big-category.interface';
 import { ISmallCategory } from '../interfaces/club/small-category.interface';
 import { IJoinRequest } from '../interfaces/club/join-request.interface';
+import { TransactionBuilder } from 'kysely';
+import { DB } from 'kysely-codegen';
+import { IPosition } from '../interfaces/club/club.enum';
+import { IClubMember } from '../interfaces/club/club-member.interface';
+import { KYSELY_TRANSACTION } from '../config/kysely.config';
 
 @Service()
 export class ClubService {
-  constructor(private readonly clubRepository: ClubRepository) {}
+  constructor(
+    private readonly clubRepository: ClubRepository,
+    @Inject(KYSELY_TRANSACTION) private readonly transaction: TransactionBuilder<DB>,
+  ) {}
 
   /**
    * 동아리 생성
@@ -18,7 +26,10 @@ export class ClubService {
    * @param accountIdx 유저 인덱스
    * @returns 생성된 동아리 인덱스
    */
-  async createClub(input: IClub.ICreateClubRequest, accountIdx: IAccount['idx']) {
+  async createClub(
+    input: IClub.ICreateClubRequest,
+    accountIdx: IAccount['idx'],
+  ): Promise<IAccount['idx']> {
     // 동아리 정보 유효성 검사
     await Promise.all([
       this.checkBelong(input.belongIdx),
@@ -27,19 +38,27 @@ export class ClubService {
       this.checkDuplicateName(input.name),
     ]);
 
-    const createdAccountIdx = await this.clubRepository.createClubWithInsertAdmin(
-      input,
-      accountIdx,
-    );
+    return this.transaction.execute(async (tx) => {
+      const createdClubIdx = await this.clubRepository.createClub(input, tx);
 
-    return createdAccountIdx;
+      await this.clubRepository.insertMemberToClub(
+        {
+          accountIdx,
+          clubIdx: createdClubIdx,
+          position: IPosition.MANAGER,
+        },
+        tx,
+      );
+
+      return createdClubIdx;
+    });
   }
 
   /**
    * 소속 인덱스 유효성 검사
    * @param belongIdx 소속 인덱스
    */
-  async checkBelong(belongIdx: IBelong['idx']) {
+  async checkBelong(belongIdx: IBelong['idx']): Promise<void> {
     const checkBelongIdx = await this.clubRepository.getBelongByIdx(belongIdx);
     if (!checkBelongIdx) {
       throw new BadRequestException('해당하는 소속 인덱스가 존재하지 않습니다');
@@ -50,7 +69,7 @@ export class ClubService {
    * 대분류 인덱스 유효성 검사
    * @param bigCategoryIdx 대분류 인덱스
    */
-  async checkBigCategory(bigCategoryIdx: IBigCategory['idx']) {
+  async checkBigCategory(bigCategoryIdx: IBigCategory['idx']): Promise<void> {
     const checkBigCategoryIdx = await this.clubRepository.getBigCategoryByIdx(bigCategoryIdx);
     if (!checkBigCategoryIdx) {
       throw new BadRequestException('해당하는 대분류 인덱스가 존재하지 않습니다');
@@ -61,7 +80,7 @@ export class ClubService {
    * 소분류 인덱스 유효성 검사
    * @param smallCategoryIdx 소분류 인덱스
    */
-  async checkSmallCategory(smallCategoryIdx: ISmallCategory['idx']) {
+  async checkSmallCategory(smallCategoryIdx: ISmallCategory['idx']): Promise<void> {
     const checkSmallCategoryIdx = await this.clubRepository.getSmallCategoryByIdx(smallCategoryIdx);
     if (!checkSmallCategoryIdx) {
       throw new BadRequestException('해당하는 소분류 인덱스가 존재하지 않습니다');
@@ -124,7 +143,9 @@ export class ClubService {
     return requestIdx;
   }
 
-  async getMyClub(accountIdx: IAccount['idx']) {
+  async getMyClub(
+    accountIdx: IAccount['idx'],
+  ): Promise<Pick<IClubMember, 'clubIdx' | 'position'>[]> {
     return this.clubRepository.getMyClubList(accountIdx);
   }
 }
