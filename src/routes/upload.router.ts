@@ -1,4 +1,4 @@
-import s3Uploader from '../middlewares/upload.middleware';
+import s3Uploader from '../middlewares/s3-uploader.middleware';
 import { Router } from 'express';
 import { wrapper } from '../utils/wrapper.util';
 import { BadRequestException } from '../utils/custom-error.util';

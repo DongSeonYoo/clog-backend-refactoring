@@ -2,7 +2,6 @@ import path from 'path';
 import s3Storage from 'multer-s3';
 import multer, { MulterError, Options } from 'multer';
 import env from '../config/env.config';
-import { wrapper } from '../utils/wrapper.util';
 import { S3Client } from '@aws-sdk/client-s3';
 import { createRandomNumberString } from '../utils/random.util';
 import { BadRequestException, InternalServerErrorException } from '../utils/custom-error.util';
@@ -38,7 +37,7 @@ const s3Uploader = (options: { fieldName: IFieldName; maxCount: number }) => {
   const { fieldName, maxCount } = options;
 
   return (req, res, next) => {
-    multer(getMulterConfig({ fieldName, maxCount })).array(fieldName, maxCount)(
+    multer(getS3MulterConfig({ fieldName, maxCount })).array(fieldName, maxCount)(
       req,
       res,
       (err: any) => {
@@ -57,37 +56,42 @@ const s3Uploader = (options: { fieldName: IFieldName; maxCount: number }) => {
   };
 };
 
-const getMulterConfig = (options: { fieldName: string; maxCount: number }): Options => {
+const getS3MulterConfig = (options: { fieldName: string; maxCount: number }): Options => {
   const { fieldName, maxCount } = options;
 
   return {
-    storage: s3Storage({
-      s3,
-      bucket: env.AWS_S3_BUCKET_NAME,
-      acl: 'public-read-write',
-      contentType: s3Storage.AUTO_CONTENT_TYPE,
-      key: (req, file, callback) => {
-        const fileExtension = path.extname(file.originalname);
-        const fileName = `${fieldName}/${new Date().getTime()}-${createRandomNumberString(
-          6,
-        )}${fileExtension}`;
-
-        return callback(null, fileName);
-      },
-    }),
-    fileFilter(req, file, callback) {
-      if (!allowedMimeType.includes(file.mimetype)) {
-        return callback(new MulterError('NOT_ALLOWD_MIMETYPE'));
-      }
-
-      return callback(null, true);
-    },
+    storage: createS3Storage(fieldName),
+    fileFilter: createFileFilter,
     limits: {
       fileSize: 100 * 1024 * 1024, // 100mb 제한
       files: maxCount, // 최대 필드 개수
       fields: 0, // 최소 필드 개수
     },
   };
+};
+
+const createS3Storage = (fieldName: string) =>
+  s3Storage({
+    s3,
+    bucket: env.AWS_S3_BUCKET_NAME,
+    acl: 'public-read-write',
+    contentType: s3Storage.AUTO_CONTENT_TYPE,
+    key: (req, file, callback) => {
+      const fileExtension = path.extname(file.originalname);
+      const fileName = `${fieldName}/${new Date().getTime()}-${createRandomNumberString(
+        6,
+      )}${fileExtension}`;
+
+      return callback(null, fileName);
+    },
+  });
+
+const createFileFilter = (req, file, callback) => {
+  if (!allowedMimeType.includes(file.mimetype)) {
+    return callback(new MulterError('NOT_ALLOWD_MIMETYPE'));
+  }
+
+  return callback(null, true);
 };
 
 export default s3Uploader;
